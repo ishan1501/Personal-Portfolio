@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 
-const PHOTO = null;
+import ishanPhoto from "./assets/ishan.jpeg";
+const PHOTO = ishanPhoto;
 
 const C = {
   bg: "#0c0c0c",
