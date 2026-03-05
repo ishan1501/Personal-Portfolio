@@ -104,6 +104,157 @@ function Counter({ pre, end, suf, trigger }) {
   );
 }
 
+function GHHeatmap({ contributions, mobile }) {
+  const COLORS = ["#1c1c1c", "#3d0000", "#7a0000", "#b80000", "#ff1a1a"];
+  if (!contributions || !contributions.length)
+    return (
+      <div
+        style={{
+          fontFamily: C.b,
+          fontSize: "10px",
+          color: C.dim,
+          padding: "20px 0",
+          letterSpacing: "2px",
+        }}
+      >
+        LOADING HEATMAP...
+      </div>
+    );
+  const sz = mobile ? 9 : 12;
+  const weeks = [];
+  let week = [];
+  const firstDay = new Date(contributions[0].date).getDay();
+  for (let i = 0; i < firstDay; i++) week.push(null);
+  contributions.forEach(function (d) {
+    week.push(d);
+    if (week.length === 7) {
+      weeks.push(week.slice());
+      week = [];
+    }
+  });
+  if (week.length) {
+    while (week.length < 7) week.push(null);
+    weeks.push(week);
+  }
+  const DAYS = ["S", "M", "T", "W", "T", "F", "S"];
+  return (
+    <div>
+      <div
+        style={{
+          display: "flex",
+          gap: "4px",
+          overflowX: "auto",
+          paddingBottom: "4px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "2px",
+            marginRight: "4px",
+            paddingTop: "0",
+          }}
+        >
+          {DAYS.map(function (d, i) {
+            return (
+              <div
+                key={i}
+                style={{
+                  height: sz + "px",
+                  width: "10px",
+                  fontFamily: C.b,
+                  fontSize: "8px",
+                  color: C.dim,
+                  display: "flex",
+                  alignItems: "center",
+                  opacity: i % 2 === 0 ? 0 : 1,
+                }}
+              >
+                {d}
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ display: "flex", gap: "2px" }}>
+          {weeks.map(function (wk, wi) {
+            return (
+              <div
+                key={wi}
+                style={{ display: "flex", flexDirection: "column", gap: "2px" }}
+              >
+                {wk.map(function (d, di) {
+                  const lvl = d ? Math.min(d.level, 4) : -1;
+                  const bg = lvl === -1 ? "transparent" : COLORS[lvl];
+                  const glow = lvl === 4 ? "0 0 5px #ff1a1a88" : "none";
+                  return (
+                    <div
+                      key={di}
+                      title={
+                        d ? d.date + " : " + d.count + " contributions" : ""
+                      }
+                      style={{
+                        width: sz + "px",
+                        height: sz + "px",
+                        background: bg,
+                        boxShadow: glow,
+                        cursor: d ? "default" : "auto",
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "4px",
+          marginTop: "12px",
+          justifyContent: "flex-end",
+        }}
+      >
+        <span
+          style={{
+            fontFamily: C.b,
+            fontSize: "9px",
+            color: C.dim,
+            marginRight: "2px",
+          }}
+        >
+          LESS
+        </span>
+        {COLORS.map(function (col, i) {
+          return (
+            <div
+              key={i}
+              style={{
+                width: "10px",
+                height: "10px",
+                background: col,
+                border: "1px solid #2a2a2a",
+              }}
+            />
+          );
+        })}
+        <span
+          style={{
+            fontFamily: C.b,
+            fontSize: "9px",
+            color: C.dim,
+            marginLeft: "2px",
+          }}
+        >
+          MORE
+        </span>
+      </div>
+    </div>
+  );
+}
+
 const NAV = [
   "Home",
   "About",
@@ -278,8 +429,11 @@ export default function Portfolio() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobile, setMobile] = useState(false);
   const [statsLive, setStatsLive] = useState(false);
+  const [ghLive, setGhLive] = useState(false);
   const [repos, setRepos] = useState([]);
   const [reposLoad, setReposLoad] = useState(true);
+  const [ghProfile, setGhProfile] = useState(null);
+  const [ghContribs, setGhContribs] = useState([]);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -287,6 +441,7 @@ export default function Portfolio() {
     message: "",
   });
   const [sent, setSent] = useState(false);
+  const ghRef = useRef(null);
 
   useEffect(() => {
     document.title = "ISHAN JAIN — WEB DESIGNER x BD PROFESSIONAL";
@@ -426,7 +581,7 @@ export default function Portfolio() {
 
   useEffect(() => {
     fetch(
-      "https://api.github.com/users/ishan1501/repos?sort=updated&per_page=12",
+      "https://api.github.com/users/ishan1501/repos?sort=updated&per_page=100",
     )
       .then((r) => r.json())
       .then((data) => {
@@ -434,6 +589,30 @@ export default function Portfolio() {
         setReposLoad(false);
       })
       .catch(() => setReposLoad(false));
+    fetch("https://api.github.com/users/ishan1501")
+      .then((r) => r.json())
+      .then((data) => setGhProfile(data))
+      .catch(() => {});
+    fetch("https://github-contributions-api.jogruber.de/v4/ishan1501?y=last")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data && data.contributions) setGhContribs(data.contributions);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setGhLive(true);
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.15 },
+    );
+    if (ghRef.current) obs.observe(ghRef.current);
+    return () => obs.disconnect();
   }, []);
 
   const goto = (id) => {
@@ -1430,7 +1609,7 @@ export default function Portfolio() {
                 border: "1px solid " + C.border,
               }}
             >
-              {repos.map((repo, pi) => {
+              {repos.slice(0, 12).map((repo, pi) => {
                 const col = RCOLS[pi % RCOLS.length];
                 return (
                   <a
@@ -2217,41 +2396,79 @@ export default function Portfolio() {
         <section
           id="github"
           style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
+          ref={ghRef}
         >
           <div style={{ marginBottom: "48px" }}>
             <SLabel color={C.grey}>OPEN SOURCE</SLabel>
-            <BigH>GITHUB ACTIVITY</BigH>
+            <BigH>
+              GITHUB
+              <br />
+              <span style={{ color: C.red }}>ACTIVITY</span>
+            </BigH>
           </div>
+
+          {/* Profile banner */}
           <div
             className="card"
             style={{
-              padding: "20px 24px",
-              marginBottom: "16px",
+              padding: "24px 28px",
+              marginBottom: "20px",
               display: "flex",
               alignItems: "center",
-              gap: "20px",
+              gap: "24px",
               flexWrap: "wrap",
+              borderTop: "2px solid " + C.red,
             }}
           >
-            <div style={{ fontFamily: C.h, fontSize: "32px", color: C.white }}>
-              🐙
-            </div>
-            <div style={{ flex: 1 }}>
+            {ghProfile && ghProfile.avatar_url && (
+              <img
+                src={ghProfile.avatar_url}
+                alt="avatar"
+                style={{
+                  width: "60px",
+                  height: "60px",
+                  borderRadius: "0",
+                  border: "2px solid " + C.red,
+                  flexShrink: 0,
+                }}
+              />
+            )}
+            <div style={{ flex: 1, minWidth: "180px" }}>
               <div
-                style={{ fontFamily: C.h, fontSize: "22px", color: C.white }}
+                style={{
+                  fontFamily: C.h,
+                  fontSize: "26px",
+                  letterSpacing: "2px",
+                  color: C.white,
+                  lineHeight: 1,
+                }}
               >
-                ISHAN1501
+                {ghProfile ? ghProfile.login.toUpperCase() : "ISHAN1501"}
               </div>
               <div
                 style={{
                   fontFamily: C.b,
                   fontSize: "11px",
                   color: C.grey,
-                  marginTop: "2px",
+                  marginTop: "5px",
                 }}
               >
-                github.com/ishan1501 · React, Next.js, Three.js
+                {ghProfile && ghProfile.bio
+                  ? ghProfile.bio
+                  : "React · Next.js · Three.js · Web Designer & BD Professional"}
               </div>
+              {ghProfile && ghProfile.location && (
+                <div
+                  style={{
+                    fontFamily: C.b,
+                    fontSize: "10px",
+                    color: C.dim,
+                    marginTop: "4px",
+                  }}
+                >
+                  {ghProfile.location}
+                </div>
+              )}
             </div>
             <a
               href="https://github.com/ishan1501"
@@ -2259,100 +2476,405 @@ export default function Portfolio() {
               rel="noreferrer"
               className="bt"
               style={{
-                padding: "9px 20px",
-                border: "1px solid " + C.border,
-                color: C.white,
+                padding: "10px 22px",
+                background: C.red,
+                color: C.bg,
                 fontFamily: C.b,
-                fontSize: "11px",
+                fontWeight: 700,
+                fontSize: "12px",
                 textDecoration: "none",
                 letterSpacing: "1px",
                 textTransform: "uppercase",
-                background: "transparent",
               }}
             >
-              VIEW
+              VIEW PROFILE
             </a>
           </div>
+
+          {/* Animated stat counters */}
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: mobile ? "1fr" : "1fr 1fr",
-              gap: "16px",
-              marginBottom: "16px",
+              gridTemplateColumns: mobile ? "1fr 1fr" : "repeat(4,1fr)",
+              gap: "1px",
+              background: C.border,
+              border: "1px solid " + C.border,
+              marginBottom: "20px",
             }}
           >
             {[
-              [
-                "https://github-readme-stats.vercel.app/api?username=ishan1501&show_icons=true&theme=transparent&title_color=ff1a1a&text_color=f5f5f0&icon_color=ff4444&border_color=2a2a2a&border_radius=0&include_all_commits=true",
-                "CONTRIBUTION STATS",
-              ],
-              [
-                "https://github-readme-stats.vercel.app/api/top-langs/?username=ishan1501&layout=compact&theme=transparent&title_color=ff1a1a&text_color=f5f5f0&border_color=2a2a2a&border_radius=0&langs_count=8",
-                "TOP LANGUAGES",
-              ],
-            ].map(([src, label], i) => (
-              <div key={i} className="card" style={{ padding: "18px" }}>
+              {
+                label: "PUBLIC REPOS",
+                val: ghProfile ? ghProfile.public_repos : 0,
+                color: C.red,
+              },
+              {
+                label: "FOLLOWERS",
+                val: ghProfile ? ghProfile.followers : 0,
+                color: "#ff8800",
+              },
+              {
+                label: "TOTAL STARS",
+                val: repos.reduce(function (s, r) {
+                  return s + (r.stargazers_count || 0);
+                }, 0),
+                color: "#ffcc00",
+              },
+              {
+                label: "TOTAL FORKS",
+                val: repos.reduce(function (s, r) {
+                  return s + (r.forks_count || 0);
+                }, 0),
+                color: "#00ff88",
+              },
+            ].map(function (st, i) {
+              return (
                 <div
+                  key={i}
                   style={{
-                    fontFamily: C.b,
-                    fontSize: "9px",
-                    color: C.dim,
-                    letterSpacing: "2px",
-                    textTransform: "uppercase",
-                    marginBottom: "12px",
+                    background: C.bg2,
+                    padding: "22px 20px",
+                    borderTop: "2px solid " + st.color,
                   }}
                 >
-                  {label}
+                  <div
+                    style={{
+                      fontFamily: C.h,
+                      fontSize: mobile ? "38px" : "48px",
+                      lineHeight: 1,
+                      color: st.color,
+                    }}
+                  >
+                    <Counter end={st.val} trigger={ghLive} />
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: C.b,
+                      fontSize: "9px",
+                      color: C.grey,
+                      letterSpacing: "2px",
+                      marginTop: "7px",
+                    }}
+                  >
+                    {st.label}
+                  </div>
                 </div>
-                <img
-                  src={src}
-                  alt={label}
-                  style={{ width: "100%", display: "block" }}
-                />
-              </div>
-            ))}
+              );
+            })}
           </div>
+
+          {/* Language breakdown */}
+          {repos.length > 0 &&
+            (function () {
+              const langMap = {};
+              repos.forEach(function (r) {
+                if (r.language)
+                  langMap[r.language] = (langMap[r.language] || 0) + 1;
+              });
+              const langs = Object.entries(langMap)
+                .sort(function (a, b) {
+                  return b[1] - a[1];
+                })
+                .slice(0, 6);
+              const total = langs.reduce(function (s, l) {
+                return s + l[1];
+              }, 0);
+              const LCOLS = [
+                C.red,
+                "#ff8800",
+                "#00ff88",
+                "#00aaff",
+                "#ff44aa",
+                "#ffcc00",
+              ];
+              return (
+                <div
+                  className="card"
+                  style={{ padding: "22px 24px", marginBottom: "20px" }}
+                >
+                  <div
+                    style={{
+                      fontFamily: C.b,
+                      fontSize: "9px",
+                      color: C.dim,
+                      letterSpacing: "3px",
+                      textTransform: "uppercase",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    LANGUAGE BREAKDOWN
+                  </div>
+                  {/* Bar */}
+                  <div
+                    style={{
+                      display: "flex",
+                      height: "8px",
+                      gap: "2px",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    {langs.map(function (l, i) {
+                      return (
+                        <div
+                          key={l[0]}
+                          style={{
+                            flex: l[1] / total,
+                            background: LCOLS[i],
+                            height: "100%",
+                            boxShadow: "0 0 6px " + LCOLS[i] + "66",
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                  {/* Legend */}
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "12px 24px",
+                    }}
+                  >
+                    {langs.map(function (l, i) {
+                      const pct = Math.round((l[1] / total) * 100);
+                      return (
+                        <div
+                          key={l[0]}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "7px",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: "10px",
+                              height: "10px",
+                              background: LCOLS[i],
+                              flexShrink: 0,
+                            }}
+                          />
+                          <span
+                            style={{
+                              fontFamily: C.b,
+                              fontSize: "11px",
+                              color: C.white,
+                            }}
+                          >
+                            {l[0]}
+                          </span>
+                          <span
+                            style={{
+                              fontFamily: C.b,
+                              fontSize: "10px",
+                              color: C.dim,
+                            }}
+                          >
+                            {pct}%
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
+          {/* Contribution heatmap */}
           <div
             className="card"
-            style={{ padding: "18px", marginBottom: "16px" }}
+            style={{
+              padding: "22px 24px",
+              marginBottom: "20px",
+              overflowX: "auto",
+            }}
           >
             <div
               style={{
                 fontFamily: C.b,
                 fontSize: "9px",
                 color: C.dim,
-                letterSpacing: "2px",
+                letterSpacing: "3px",
                 textTransform: "uppercase",
-                marginBottom: "12px",
+                marginBottom: "16px",
               }}
             >
-              CONTRIBUTION STREAK
+              CONTRIBUTION HEATMAP — LAST 365 DAYS
+              {ghContribs.length > 0 && (
+                <span style={{ color: C.red, marginLeft: "12px" }}>
+                  {ghContribs.reduce(function (s, d) {
+                    return s + d.count;
+                  }, 0)}{" "}
+                  TOTAL
+                </span>
+              )}
             </div>
-            <img
-              src="https://github-readme-streak-stats.herokuapp.com/?user=ishan1501&theme=transparent&ring=ff1a1a&fire=ff8800&currStreakLabel=ff1a1a&sideLabels=f5f5f0&dates=f5f5f055&border=2a2a2a&border_radius=0"
-              alt="Streak"
-              style={{ width: "100%", display: "block" }}
-            />
+            <GHHeatmap contributions={ghContribs} mobile={mobile} />
           </div>
-          <div className="card" style={{ padding: "18px" }}>
-            <div
-              style={{
-                fontFamily: C.b,
-                fontSize: "9px",
-                color: C.dim,
-                letterSpacing: "2px",
-                textTransform: "uppercase",
-                marginBottom: "12px",
-              }}
-            >
-              CONTRIBUTION GRAPH
+
+          {/* Top repos by stars */}
+          {repos.length > 0 && (
+            <div>
+              <div
+                style={{
+                  fontFamily: C.b,
+                  fontSize: "9px",
+                  color: C.dim,
+                  letterSpacing: "3px",
+                  textTransform: "uppercase",
+                  marginBottom: "12px",
+                }}
+              >
+                TOP REPOS BY STARS
+              </div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: mobile ? "1fr" : "1fr 1fr 1fr",
+                  gap: "1px",
+                  background: C.border,
+                  border: "1px solid " + C.border,
+                }}
+              >
+                {repos
+                  .slice()
+                  .sort(function (a, b) {
+                    return b.stargazers_count - a.stargazers_count;
+                  })
+                  .slice(0, 6)
+                  .map(function (repo, pi) {
+                    const col = RCOLS[pi % RCOLS.length];
+                    return (
+                      <a
+                        key={repo.id}
+                        href={repo.html_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="card"
+                        style={{
+                          background: C.bg2,
+                          display: "flex",
+                          flexDirection: "column",
+                          textDecoration: "none",
+                          borderTop: "2px solid " + col,
+                        }}
+                      >
+                        <div
+                          style={{
+                            padding: "14px 16px 10px",
+                            borderBottom: "1px solid " + C.border,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: "7px",
+                              height: "7px",
+                              background: col,
+                              flexShrink: 0,
+                            }}
+                          />
+                          <div
+                            style={{
+                              fontFamily: C.h,
+                              fontSize: "16px",
+                              letterSpacing: "1px",
+                              color: C.white,
+                              lineHeight: 1,
+                              flex: 1,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {repo.name.toUpperCase().replace(/-/g, " ")}
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            padding: "12px 16px",
+                            flex: 1,
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "8px",
+                          }}
+                        >
+                          <p
+                            style={{
+                              fontFamily: C.b,
+                              fontSize: "11px",
+                              color: C.grey,
+                              lineHeight: 1.7,
+                              flex: 1,
+                            }}
+                          >
+                            {repo.description || "No description."}
+                          </p>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "12px",
+                              alignItems: "center",
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            {repo.language && (
+                              <span
+                                style={{
+                                  fontFamily: C.b,
+                                  fontSize: "10px",
+                                  color: col,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "4px",
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    width: "6px",
+                                    height: "6px",
+                                    borderRadius: "50%",
+                                    background: col,
+                                    display: "inline-block",
+                                  }}
+                                />
+                                {repo.language}
+                              </span>
+                            )}
+                            <span
+                              style={{
+                                fontFamily: C.b,
+                                fontSize: "10px",
+                                color: C.grey,
+                              }}
+                            >
+                              &#9733; {repo.stargazers_count}
+                            </span>
+                            <span
+                              style={{
+                                fontFamily: C.b,
+                                fontSize: "10px",
+                                color: C.dim,
+                                marginLeft: "auto",
+                              }}
+                            >
+                              {new Date(repo.updated_at)
+                                .toLocaleDateString("en-GB", {
+                                  month: "short",
+                                  year: "numeric",
+                                })
+                                .toUpperCase()}
+                            </span>
+                          </div>
+                        </div>
+                      </a>
+                    );
+                  })}
+              </div>
             </div>
-            <img
-              src="https://github-readme-activity-graph.vercel.app/graph?username=ishan1501&theme=react-dark&bg_color=transparent&color=ff1a1a&line=ff4444&point=ff1a1a&area=true&hide_border=true"
-              alt="Graph"
-              style={{ width: "100%", display: "block" }}
-            />
-          </div>
+          )}
         </section>
 
         {/* MUSIC */}
