@@ -104,6 +104,39 @@ function Counter({ pre, end, suf, trigger }) {
   );
 }
 
+function useReveal() {
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add("vis");
+            obs.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.08 },
+    );
+    const run = () =>
+      document
+        .querySelectorAll(".sr,.srl,.srs")
+        .forEach((el) => obs.observe(el));
+    const t = setTimeout(run, 80);
+    return () => clearTimeout(t);
+  }, []);
+}
+
+function R({ children, delay, mode, style }) {
+  const cls =
+    "sr" + (mode === "left" ? " srl" : mode === "scale" ? " srs" : "");
+  const d = delay ? { animationDelay: delay } : {};
+  return (
+    <div className={cls} style={{ ...d, ...(style || {}) }}>
+      {children}
+    </div>
+  );
+}
+
 function GHHeatmap({ contributions, mobile }) {
   const COLORS = ["#1c1c1c", "#3d0000", "#7a0000", "#b80000", "#ff1a1a"];
   if (!contributions || !contributions.length)
@@ -391,6 +424,12 @@ const CSS = [
   "::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:#0c0c0c}::-webkit-scrollbar-thumb{background:#ff1a1a}",
   "@media(hover:hover){html,body,a,button{cursor:none}.co{position:fixed;z-index:9999;pointer-events:none;width:20px;height:20px;border:2px solid #ff1a1a;transform:translate(-50%,-50%);transition:width .1s,height .1s;mix-blend-mode:difference}.ci{position:fixed;z-index:9999;pointer-events:none;width:4px;height:4px;background:#ff1a1a;transform:translate(-50%,-50%)}.co.h{width:44px;height:44px;border-color:#f5f5f0}.co.c{width:10px;height:10px}}",
   "@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}",
+  "@keyframes srUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}",
+  "@keyframes srLeft{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}",
+  "@keyframes srScale{from{opacity:0;transform:scale(0.94)}to{opacity:1;transform:none}}",
+  ".sr{opacity:0}.sr.vis{animation:srUp .55s cubic-bezier(.16,1,.3,1) forwards}",
+  ".srl.vis{animation:srLeft .55s cubic-bezier(.16,1,.3,1) forwards}",
+  ".srs.vis{animation:srScale .55s cubic-bezier(.16,1,.3,1) forwards}",
   "@keyframes rPulse{0%{box-shadow:0 0 0 0 rgba(255,26,26,0.45)}70%{box-shadow:0 0 0 14px rgba(255,26,26,0)}100%{box-shadow:0 0 0 0 rgba(255,26,26,0)}}",
   "@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}",
   "@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}",
@@ -619,6 +658,7 @@ export default function Portfolio() {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
     setMenuOpen(false);
   };
+  useReveal();
 
   const submitForm = () => {
     if (!form.name || !form.message) return;
@@ -869,147 +909,163 @@ export default function Portfolio() {
               <div style={{ color: C.red, marginTop: "4px" }}>GURUGRAM</div>
             </div>
           )}
-          <div style={{ marginBottom: "28px" }}>
-            <Tag>AVAILABLE FOR HIRE</Tag>
-          </div>
-          <h1
-            className="gh"
-            data-text="ISHAN"
-            style={{
-              fontFamily: C.h,
-              fontWeight: 400,
-              fontSize: "clamp(88px,20vw,240px)",
-              lineHeight: 0.82,
-              letterSpacing: "2px",
-              color: C.white,
-            }}
-          >
-            ISHAN
-          </h1>
-          <h1
-            style={{
-              fontFamily: C.h,
-              fontWeight: 400,
-              fontSize: "clamp(88px,20vw,240px)",
-              lineHeight: 0.82,
-              letterSpacing: "2px",
-              color: "transparent",
-              WebkitTextStroke: "2px " + C.red,
-            }}
-          >
-            JAIN
-          </h1>
-          <div
-            style={{
-              marginTop: "36px",
-              display: "flex",
-              flexDirection: mobile ? "column" : "row",
-              alignItems: "flex-start",
-              gap: mobile ? "24px" : "48px",
-              flexWrap: "wrap",
-            }}
-          >
-            <div style={{ flex: 1, minWidth: "260px" }}>
-              <p
-                style={{
-                  fontFamily: C.b,
-                  fontSize: "clamp(12px,1.4vw,15px)",
-                  color: C.grey,
-                  lineHeight: 1.75,
-                  maxWidth: "460px",
-                }}
-              >
-                I build{" "}
-                <span style={{ color: C.white }}>websites that convert</span> —
-                and{" "}
-                <span style={{ color: C.white }}>
-                  BD strategies that grow revenue.
-                </span>
-                <br />
-                <br />
-                Ex-Edoofa · B.Tech CSE · Freelance Designer
-              </p>
-              <div
-                style={{
-                  display: "flex",
-                  gap: "10px",
-                  marginTop: "28px",
-                  flexWrap: "wrap",
-                }}
-              >
-                <button
-                  className="bt"
-                  onClick={() => goto("services")}
-                  style={{
-                    padding: "12px 28px",
-                    background: C.red,
-                    color: C.bg,
-                    fontFamily: C.b,
-                    fontWeight: 700,
-                    fontSize: "13px",
-                    letterSpacing: "1.5px",
-                    textTransform: "uppercase",
-                    animation: "rPulse 2.5s ease-in-out infinite",
-                  }}
-                >
-                  HIRE ME
-                </button>
-                <button
-                  className="bt"
-                  onClick={() => goto("projects")}
-                  style={{
-                    padding: "12px 28px",
-                    background: "transparent",
-                    border: "1px solid " + C.border,
-                    color: C.white,
-                    fontFamily: C.b,
-                    fontSize: "13px",
-                    letterSpacing: "1px",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  SEE WORK
-                </button>
-              </div>
-            </div>
+          <R>
             <div
-              ref={statsRef}
               style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "20px 36px",
+                marginBottom: "28px",
+                display: "flex",
+                gap: "10px",
+                flexWrap: "wrap",
               }}
             >
-              {STATS.map((s, i) => (
-                <div key={i}>
-                  <div
+              <Tag>AVAILABLE FOR HIRE</Tag>
+              <Tag color="#ff8800">BD + WEB SPECIALIST</Tag>
+            </div>
+          </R>
+          <R delay=".06s">
+            <h1
+              className="gh"
+              data-text="ISHAN"
+              style={{
+                fontFamily: C.h,
+                fontWeight: 400,
+                fontSize: "clamp(88px,20vw,240px)",
+                lineHeight: 0.82,
+                letterSpacing: "2px",
+                color: C.white,
+              }}
+            >
+              ISHAN
+            </h1>
+          </R>
+          <R delay=".1s">
+            <h1
+              style={{
+                fontFamily: C.h,
+                fontWeight: 400,
+                fontSize: "clamp(88px,20vw,240px)",
+                lineHeight: 0.82,
+                letterSpacing: "2px",
+                color: "transparent",
+                WebkitTextStroke: "2px " + C.red,
+              }}
+            >
+              JAIN
+            </h1>
+          </R>
+          <R delay=".15s">
+            <div
+              style={{
+                marginTop: "36px",
+                display: "flex",
+                flexDirection: mobile ? "column" : "row",
+                alignItems: "flex-start",
+                gap: mobile ? "24px" : "48px",
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ flex: 1, minWidth: "260px" }}>
+                <p
+                  style={{
+                    fontFamily: C.b,
+                    fontSize: "clamp(12px,1.4vw,15px)",
+                    color: C.grey,
+                    lineHeight: 1.75,
+                    maxWidth: "460px",
+                  }}
+                >
+                  I build{" "}
+                  <span style={{ color: C.white }}>websites that convert</span>{" "}
+                  — and{" "}
+                  <span style={{ color: C.white }}>
+                    BD strategies that grow revenue.
+                  </span>
+                  <br />
+                  <br />
+                  Ex-Edoofa · B.Tech CSE · Freelance Designer
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "10px",
+                    marginTop: "28px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <button
+                    className="bt"
+                    onClick={() => goto("services")}
                     style={{
-                      fontFamily: C.h,
-                      fontSize: mobile ? "38px" : "50px",
-                      lineHeight: 1,
-                      color: i === 0 ? C.red : C.white,
-                      letterSpacing: "1px",
-                    }}
-                  >
-                    <Counter {...s} trigger={statsLive} />
-                  </div>
-                  <div
-                    style={{
+                      padding: "12px 28px",
+                      background: C.red,
+                      color: C.bg,
                       fontFamily: C.b,
-                      fontSize: "10px",
-                      color: C.grey,
+                      fontWeight: 700,
+                      fontSize: "13px",
                       letterSpacing: "1.5px",
                       textTransform: "uppercase",
-                      marginTop: "5px",
-                      maxWidth: "130px",
+                      animation: "rPulse 2.5s ease-in-out infinite",
                     }}
                   >
-                    {s.lab}
-                  </div>
+                    HIRE ME
+                  </button>
+                  <button
+                    className="bt"
+                    onClick={() => goto("projects")}
+                    style={{
+                      padding: "12px 28px",
+                      background: "transparent",
+                      border: "1px solid " + C.border,
+                      color: C.white,
+                      fontFamily: C.b,
+                      fontSize: "13px",
+                      letterSpacing: "1px",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    SEE WORK
+                  </button>
                 </div>
-              ))}
+              </div>
+              <div
+                ref={statsRef}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "20px 36px",
+                }}
+              >
+                {STATS.map((s, i) => (
+                  <div key={i}>
+                    <div
+                      style={{
+                        fontFamily: C.h,
+                        fontSize: mobile ? "38px" : "50px",
+                        lineHeight: 1,
+                        color: i === 0 ? C.red : C.white,
+                        letterSpacing: "1px",
+                      }}
+                    >
+                      <Counter {...s} trigger={statsLive} />
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: C.b,
+                        fontSize: "10px",
+                        color: C.grey,
+                        letterSpacing: "1.5px",
+                        textTransform: "uppercase",
+                        marginTop: "5px",
+                        maxWidth: "130px",
+                      }}
+                    >
+                      {s.lab}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          </R>
           <div
             style={{
               position: "absolute",
@@ -1052,7 +1108,7 @@ export default function Portfolio() {
         >
           <div className="mwrap">
             <div className="minner">
-              {"WEB DESIGN · BUSINESS DEVELOPMENT · AI WORKFLOWS · REACT · FIGMA · NEXT.JS · CONVERSION STRATEGY · ".repeat(
+              {"WEB DESIGN · BUSINESS DEVELOPMENT · REVENUE GROWTH · LEAD CONVERSION · CLIENT MANAGEMENT · REACT · FIGMA · GO-TO-MARKET · BD STRATEGY · ".repeat(
                 4,
               )}
             </div>
@@ -1064,7 +1120,7 @@ export default function Portfolio() {
           id="about"
           style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
         >
-          <div style={{ marginBottom: "56px" }}>
+          <R style={{ marginBottom: "56px" }}>
             <SLabel>ABOUT</SLabel>
             <BigH>
               THE PERSON
@@ -1073,7 +1129,7 @@ export default function Portfolio() {
               <br />
               THE WORK
             </BigH>
-          </div>
+          </R>
           <div
             style={{
               display: "grid",
@@ -1082,290 +1138,302 @@ export default function Portfolio() {
               alignItems: "start",
             }}
           >
-            <div>
-              <div style={{ position: "relative" }}>
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "-6px",
-                    left: "-6px",
-                    width: "24px",
-                    height: "24px",
-                    borderTop: "2px solid " + C.red,
-                    borderLeft: "2px solid " + C.red,
-                    zIndex: 2,
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: "-6px",
-                    right: "-6px",
-                    width: "24px",
-                    height: "24px",
-                    borderBottom: "2px solid " + C.red,
-                    borderRight: "2px solid " + C.red,
-                    zIndex: 2,
-                  }}
-                />
-                <div
-                  style={{
-                    width: "100%",
-                    aspectRatio: "3/3.5",
-                    background: C.bg3,
-                    border: "1px solid " + C.border,
-                    overflow: "hidden",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  {PHOTO ? (
-                    <img
-                      src={PHOTO}
-                      alt="Ishan"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
-                    />
-                  ) : (
-                    <>
-                      <div
-                        style={{
-                          fontFamily: C.h,
-                          fontSize: "88px",
-                          color: C.red,
-                          lineHeight: 1,
-                        }}
-                      >
-                        IJ
-                      </div>
-                      <div
-                        style={{
-                          fontFamily: C.b,
-                          fontSize: "9px",
-                          color: C.dim,
-                          letterSpacing: "3px",
-                          marginTop: "8px",
-                        }}
-                      >
-                        UPLOAD PHOTO
-                      </div>
-                    </>
-                  )}
-                </div>
-                <div
-                  className="card"
-                  style={{ marginTop: "12px", padding: "16px 20px" }}
-                >
+            <R mode="left">
+              <div>
+                <div style={{ position: "relative" }}>
                   <div
                     style={{
-                      fontFamily: C.h,
-                      fontSize: "22px",
-                      letterSpacing: "1px",
-                      color: C.white,
+                      position: "absolute",
+                      top: "-6px",
+                      left: "-6px",
+                      width: "24px",
+                      height: "24px",
+                      borderTop: "2px solid " + C.red,
+                      borderLeft: "2px solid " + C.red,
+                      zIndex: 2,
                     }}
-                  >
-                    ISHAN JAIN
-                  </div>
+                  />
                   <div
                     style={{
-                      fontFamily: C.b,
-                      fontSize: "11px",
-                      color: C.grey,
-                      marginTop: "4px",
+                      position: "absolute",
+                      bottom: "-6px",
+                      right: "-6px",
+                      width: "24px",
+                      height: "24px",
+                      borderBottom: "2px solid " + C.red,
+                      borderRight: "2px solid " + C.red,
+                      zIndex: 2,
                     }}
-                  >
-                    GURUGRAM, HARYANA
-                  </div>
+                  />
                   <div
                     style={{
-                      fontFamily: C.b,
-                      fontSize: "11px",
-                      color: C.grey,
-                      marginTop: "2px",
-                    }}
-                  >
-                    jainishan18@gmail.com
-                  </div>
-                  <div
-                    style={{
+                      width: "100%",
+                      aspectRatio: "3/3.5",
+                      background: C.bg3,
+                      border: "1px solid " + C.border,
+                      overflow: "hidden",
                       display: "flex",
-                      gap: "8px",
-                      marginTop: "12px",
-                      flexWrap: "wrap",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
-                    {[
-                      ["GH", "https://github.com/ishan1501"],
-                      ["LI", "https://linkedin.com/in/ishan1501/"],
-                      ["EM", "mailto:jainishan18@gmail.com"],
-                    ].map(([l, h]) => (
-                      <a
-                        key={l}
-                        href={h}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="bt"
+                    {PHOTO ? (
+                      <img
+                        src={PHOTO}
+                        alt="Ishan"
                         style={{
-                          padding: "5px 12px",
-                          background: "transparent",
-                          border: "1px solid " + C.border,
-                          color: C.grey,
-                          fontFamily: C.b,
-                          fontWeight: 700,
-                          fontSize: "11px",
-                          textDecoration: "none",
-                          letterSpacing: "1px",
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
                         }}
-                      >
-                        [{l}]
-                      </a>
-                    ))}
+                      />
+                    ) : (
+                      <>
+                        <div
+                          style={{
+                            fontFamily: C.h,
+                            fontSize: "88px",
+                            color: C.red,
+                            lineHeight: 1,
+                          }}
+                        >
+                          IJ
+                        </div>
+                        <div
+                          style={{
+                            fontFamily: C.b,
+                            fontSize: "9px",
+                            color: C.dim,
+                            letterSpacing: "3px",
+                            marginTop: "8px",
+                          }}
+                        >
+                          UPLOAD PHOTO
+                        </div>
+                      </>
+                    )}
                   </div>
-                </div>
-              </div>
-            </div>
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "18px" }}
-            >
-              <p
-                style={{
-                  fontFamily: C.b,
-                  fontSize: "14px",
-                  color: C.white,
-                  lineHeight: 1.85,
-                }}
-              >
-                I'm a CS graduate who went deep into business development —
-                spending a year managing the full post-enrollment funnel at
-                Edoofa, an international EdTech company, and contributing to
-                ~70% of company revenue.
-              </p>
-              <p
-                style={{
-                  fontFamily: C.b,
-                  fontSize: "12px",
-                  color: C.grey,
-                  lineHeight: 1.85,
-                }}
-              >
-                That experience gave me something most developers don't have: a
-                real understanding of how businesses grow, what clients actually
-                need, and how to communicate across cultures and time zones.
-              </p>
-              <p
-                style={{
-                  fontFamily: C.b,
-                  fontSize: "12px",
-                  color: C.grey,
-                  lineHeight: 1.85,
-                }}
-              >
-                Now I combine both — building premium websites with a conversion
-                mindset, and consulting on BD strategy with technical precision.
-              </p>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "1px",
-                  background: C.border,
-                  border: "1px solid " + C.border,
-                }}
-              >
-                {[
-                  ["DEGREE", "B.Tech CSE — LPU"],
-                  ["LOCATION", "Gurugram, Haryana"],
-                  ["LANGUAGES", "English, Hindi"],
-                  ["STATUS", "Open to Work"],
-                ].map(([k, v]) => (
                   <div
-                    key={k}
-                    style={{ background: C.bg2, padding: "14px 16px" }}
+                    className="card"
+                    style={{ marginTop: "12px", padding: "16px 20px" }}
                   >
                     <div
                       style={{
-                        fontFamily: C.b,
-                        fontSize: "9px",
-                        color: C.red,
-                        letterSpacing: "2px",
-                        marginBottom: "5px",
-                      }}
-                    >
-                      {k}
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: C.s,
-                        fontSize: "14px",
-                        fontWeight: 700,
+                        fontFamily: C.h,
+                        fontSize: "22px",
+                        letterSpacing: "1px",
                         color: C.white,
                       }}
                     >
-                      {v}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div
-                className="card"
-                style={{ padding: "20px", borderLeft: "3px solid " + C.red }}
-              >
-                <div
-                  style={{
-                    fontFamily: C.b,
-                    fontSize: "9px",
-                    color: C.red,
-                    letterSpacing: "2px",
-                    marginBottom: "14px",
-                  }}
-                >
-                  EDUCATION
-                </div>
-                {[
-                  ["B.Tech, Computer Science & Engineering", "LPU"],
-                  ["Intermediate — 12th", "I.G.P.I.C Manjhola Billoch"],
-                  ["Matriculation — 10th", "PMSS Dhampur, Bijnor"],
-                ].map(([d, inst], idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      gap: "12px",
-                      paddingBottom: idx < 2 ? "10px" : "0",
-                      marginBottom: idx < 2 ? "10px" : "0",
-                      borderBottom: idx < 2 ? "1px solid " + C.border : "none",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontFamily: C.b,
-                        fontSize: "12px",
-                        color: C.white,
-                      }}
-                    >
-                      {d}
+                      ISHAN JAIN
                     </div>
                     <div
                       style={{
                         fontFamily: C.b,
                         fontSize: "11px",
                         color: C.grey,
-                        textAlign: "right",
-                        flexShrink: 0,
+                        marginTop: "4px",
                       }}
                     >
-                      {inst}
+                      GURUGRAM, HARYANA
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: C.b,
+                        fontSize: "11px",
+                        color: C.grey,
+                        marginTop: "2px",
+                      }}
+                    >
+                      jainishan18@gmail.com
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "8px",
+                        marginTop: "12px",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      {[
+                        ["GH", "https://github.com/ishan1501"],
+                        ["LI", "https://linkedin.com/in/ishan1501/"],
+                        ["EM", "mailto:jainishan18@gmail.com"],
+                      ].map(([l, h]) => (
+                        <a
+                          key={l}
+                          href={h}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="bt"
+                          style={{
+                            padding: "5px 12px",
+                            background: "transparent",
+                            border: "1px solid " + C.border,
+                            color: C.grey,
+                            fontFamily: C.b,
+                            fontWeight: 700,
+                            fontSize: "11px",
+                            textDecoration: "none",
+                            letterSpacing: "1px",
+                          }}
+                        >
+                          [{l}]
+                        </a>
+                      ))}
                     </div>
                   </div>
-                ))}
+                </div>
               </div>
-            </div>
+            </R>
+            <R delay=".1s">
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "18px",
+                }}
+              >
+                <p
+                  style={{
+                    fontFamily: C.b,
+                    fontSize: "14px",
+                    color: C.white,
+                    lineHeight: 1.85,
+                  }}
+                >
+                  Business development first — technology second. I spent a year
+                  at Edoofa owning the full post-enrollment funnel for 500+
+                  international student leads, contributing to ~70% of company
+                  revenue while coordinating across time zones and managing
+                  everything from CRM to visa documentation.
+                </p>
+                <p
+                  style={{
+                    fontFamily: C.b,
+                    fontSize: "12px",
+                    color: C.grey,
+                    lineHeight: 1.85,
+                  }}
+                >
+                  That ground-level BD experience taught me what clients
+                  actually need, how decisions get made, and what it takes to
+                  convert interest into revenue. Most developers build what
+                  they're told. I build what works.
+                </p>
+                <p
+                  style={{
+                    fontFamily: C.b,
+                    fontSize: "12px",
+                    color: C.grey,
+                    lineHeight: 1.85,
+                  }}
+                >
+                  Now I bring that commercial mindset to every web project —
+                  treating each site like a sales asset, not just a design
+                  exercise.
+                </p>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "1px",
+                    background: C.border,
+                    border: "1px solid " + C.border,
+                  }}
+                >
+                  {[
+                    ["DEGREE", "B.Tech CSE — LPU"],
+                    ["LOCATION", "Gurugram, Haryana"],
+                    ["LANGUAGES", "English, Hindi"],
+                    ["STATUS", "Open to Work"],
+                  ].map(([k, v]) => (
+                    <div
+                      key={k}
+                      style={{ background: C.bg2, padding: "14px 16px" }}
+                    >
+                      <div
+                        style={{
+                          fontFamily: C.b,
+                          fontSize: "9px",
+                          color: C.red,
+                          letterSpacing: "2px",
+                          marginBottom: "5px",
+                        }}
+                      >
+                        {k}
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: C.s,
+                          fontSize: "14px",
+                          fontWeight: 700,
+                          color: C.white,
+                        }}
+                      >
+                        {v}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div
+                  className="card"
+                  style={{ padding: "20px", borderLeft: "3px solid " + C.red }}
+                >
+                  <div
+                    style={{
+                      fontFamily: C.b,
+                      fontSize: "9px",
+                      color: C.red,
+                      letterSpacing: "2px",
+                      marginBottom: "14px",
+                    }}
+                  >
+                    EDUCATION
+                  </div>
+                  {[
+                    ["B.Tech, Computer Science & Engineering", "LPU"],
+                    ["Intermediate — 12th", "I.G.P.I.C Manjhola Billoch"],
+                    ["Matriculation — 10th", "PMSS Dhampur, Bijnor"],
+                  ].map(([d, inst], idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: "12px",
+                        paddingBottom: idx < 2 ? "10px" : "0",
+                        marginBottom: idx < 2 ? "10px" : "0",
+                        borderBottom:
+                          idx < 2 ? "1px solid " + C.border : "none",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontFamily: C.b,
+                          fontSize: "12px",
+                          color: C.white,
+                        }}
+                      >
+                        {d}
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: C.b,
+                          fontSize: "11px",
+                          color: C.grey,
+                          textAlign: "right",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {inst}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </R>
           </div>
         </section>
 
@@ -1374,162 +1442,167 @@ export default function Portfolio() {
           id="experience"
           style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
         >
-          <div style={{ marginBottom: "56px" }}>
+          <R style={{ marginBottom: "56px" }}>
             <SLabel color={C.red}>TRACK RECORD</SLabel>
             <BigH>
               WORK
               <br />
               <span style={{ color: C.red }}>EXPERIENCE</span>
             </BigH>
-          </div>
+          </R>
           {EXP.map((job, ji) => (
-            <div
-              key={job.co}
-              style={{
-                position: "relative",
-                paddingLeft: mobile ? "0" : "32px",
-                paddingBottom: "24px",
-              }}
-            >
-              {!mobile && (
-                <>
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: 0,
-                      top: "20px",
-                      bottom: 0,
-                      width: "1px",
-                      background:
-                        "linear-gradient(to bottom," +
-                        job.color +
-                        "55,transparent)",
-                      display: ji === EXP.length - 1 ? "none" : "block",
-                    }}
-                  />
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: "-5px",
-                      top: "18px",
-                      width: "11px",
-                      height: "11px",
-                      background: job.color,
-                      boxShadow: "0 0 12px " + job.color,
-                    }}
-                  />
-                </>
-              )}
+            <R key={job.co} delay={ji * 0.08 + "s"}>
               <div
-                className="card"
-                style={{ borderLeft: "3px solid " + job.color }}
+                style={{
+                  position: "relative",
+                  paddingLeft: mobile ? "0" : "32px",
+                  paddingBottom: "24px",
+                }}
               >
+                {!mobile && (
+                  <>
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: 0,
+                        top: "20px",
+                        bottom: 0,
+                        width: "1px",
+                        background:
+                          "linear-gradient(to bottom," +
+                          job.color +
+                          "55,transparent)",
+                        display: ji === EXP.length - 1 ? "none" : "block",
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: "-5px",
+                        top: "18px",
+                        width: "11px",
+                        height: "11px",
+                        background: job.color,
+                        boxShadow: "0 0 12px " + job.color,
+                      }}
+                    />
+                  </>
+                )}
                 <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    flexWrap: "wrap",
-                    gap: "12px",
-                    marginBottom: "8px",
-                    padding: "24px 24px 0",
-                  }}
+                  className="card"
+                  style={{ borderLeft: "3px solid " + job.color }}
                 >
-                  <div>
-                    <div
-                      style={{
-                        fontFamily: C.h,
-                        fontSize: mobile ? "20px" : "26px",
-                        letterSpacing: "1px",
-                        color: C.white,
-                        marginBottom: "4px",
-                      }}
-                    >
-                      {job.role}
-                    </div>
-                    <div
-                      style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}
-                    >
-                      <span
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      flexWrap: "wrap",
+                      gap: "12px",
+                      marginBottom: "8px",
+                      padding: "24px 24px 0",
+                    }}
+                  >
+                    <div>
+                      <div
                         style={{
-                          fontFamily: C.s,
-                          fontWeight: 800,
-                          fontSize: "14px",
-                          color: job.color,
-                          textTransform: "uppercase",
+                          fontFamily: C.h,
+                          fontSize: mobile ? "20px" : "26px",
+                          letterSpacing: "1px",
+                          color: C.white,
+                          marginBottom: "4px",
                         }}
                       >
-                        {job.co}
-                      </span>
-                      <span
+                        {job.role}
+                      </div>
+                      <div
                         style={{
-                          fontFamily: C.b,
-                          fontSize: "11px",
-                          color: C.grey,
+                          display: "flex",
+                          gap: "10px",
+                          flexWrap: "wrap",
                         }}
                       >
-                        {job.type}
-                      </span>
+                        <span
+                          style={{
+                            fontFamily: C.s,
+                            fontWeight: 800,
+                            fontSize: "14px",
+                            color: job.color,
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          {job.co}
+                        </span>
+                        <span
+                          style={{
+                            fontFamily: C.b,
+                            fontSize: "11px",
+                            color: C.grey,
+                          }}
+                        >
+                          {job.type}
+                        </span>
+                      </div>
                     </div>
+                    <Tag color={job.color}>{job.period}</Tag>
                   </div>
-                  <Tag color={job.color}>{job.period}</Tag>
+                  <p
+                    style={{
+                      fontFamily: C.b,
+                      fontSize: "12px",
+                      color: C.dim,
+                      fontStyle: "italic",
+                      padding: "12px 24px 16px",
+                      borderBottom: "1px solid " + C.border,
+                    }}
+                  >
+                    {job.desc}
+                  </p>
+                  <ul
+                    style={{
+                      listStyle: "none",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "6px",
+                      padding: "16px 24px 24px",
+                    }}
+                  >
+                    {job.bullets.map((b, bi) => (
+                      <li
+                        key={bi}
+                        style={{
+                          display: "flex",
+                          gap: "12px",
+                          alignItems: "flex-start",
+                        }}
+                      >
+                        <span
+                          style={{
+                            color: job.color,
+                            flexShrink: 0,
+                            fontFamily: C.b,
+                            fontSize: "10px",
+                            marginTop: "5px",
+                          }}
+                        >
+                          &#9654;
+                        </span>
+                        <span
+                          style={{
+                            fontFamily: C.b,
+                            fontSize: "12px",
+                            color: C.grey,
+                            lineHeight: 1.75,
+                          }}
+                        >
+                          {b}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <p
-                  style={{
-                    fontFamily: C.b,
-                    fontSize: "12px",
-                    color: C.dim,
-                    fontStyle: "italic",
-                    padding: "12px 24px 16px",
-                    borderBottom: "1px solid " + C.border,
-                  }}
-                >
-                  {job.desc}
-                </p>
-                <ul
-                  style={{
-                    listStyle: "none",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "6px",
-                    padding: "16px 24px 24px",
-                  }}
-                >
-                  {job.bullets.map((b, bi) => (
-                    <li
-                      key={bi}
-                      style={{
-                        display: "flex",
-                        gap: "12px",
-                        alignItems: "flex-start",
-                      }}
-                    >
-                      <span
-                        style={{
-                          color: job.color,
-                          flexShrink: 0,
-                          fontFamily: C.b,
-                          fontSize: "10px",
-                          marginTop: "5px",
-                        }}
-                      >
-                        &#9654;
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: C.b,
-                          fontSize: "12px",
-                          color: C.grey,
-                          lineHeight: 1.75,
-                        }}
-                      >
-                        {b}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
               </div>
-            </div>
+            </R>
           ))}
         </section>
 
@@ -1538,14 +1611,14 @@ export default function Portfolio() {
           id="projects"
           style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
         >
-          <div style={{ marginBottom: "56px" }}>
+          <R style={{ marginBottom: "56px" }}>
             <SLabel color="#ff8800">PORTFOLIO</SLabel>
             <BigH>
               GITHUB
               <br />
               <span style={{ color: "#ff8800" }}>PROJECTS</span>
             </BigH>
-          </div>
+          </R>
           {reposLoad ? (
             <div
               style={{
@@ -1788,7 +1861,7 @@ export default function Portfolio() {
           id="process"
           style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
         >
-          <div style={{ marginBottom: "56px" }}>
+          <R style={{ marginBottom: "56px" }}>
             <SLabel color="#00ff88">HOW I WORK</SLabel>
             <BigH>
               THE
@@ -1807,7 +1880,7 @@ export default function Portfolio() {
             >
               Transparent, structured, accountable.
             </p>
-          </div>
+          </R>
           <div
             style={{
               display: "grid",
@@ -1907,14 +1980,14 @@ export default function Portfolio() {
           id="skills"
           style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
         >
-          <div style={{ marginBottom: "56px" }}>
+          <R style={{ marginBottom: "56px" }}>
             <SLabel color="#00aaff">CAPABILITIES</SLabel>
             <BigH>
               SKILL
               <br />
               <span style={{ color: "#00aaff" }}>SET</span>
             </BigH>
-          </div>
+          </R>
           <div
             style={{
               display: "grid",
@@ -2159,13 +2232,13 @@ export default function Portfolio() {
           id="services"
           style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
         >
-          <div style={{ marginBottom: "56px" }}>
+          <R style={{ marginBottom: "56px" }}>
             <SLabel color={C.red}>SERVICES</SLabel>
             <BigH>
               WHAT I<br />
               <span style={{ color: C.red }}>OFFER</span>
             </BigH>
-          </div>
+          </R>
           <div
             style={{
               display: "grid",
@@ -2398,14 +2471,14 @@ export default function Portfolio() {
           style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
           ref={ghRef}
         >
-          <div style={{ marginBottom: "48px" }}>
+          <R style={{ marginBottom: "48px" }}>
             <SLabel color={C.grey}>OPEN SOURCE</SLabel>
             <BigH>
               GITHUB
               <br />
               <span style={{ color: C.red }}>ACTIVITY</span>
             </BigH>
-          </div>
+          </R>
 
           {/* Profile banner */}
           <div
@@ -2882,13 +2955,17 @@ export default function Portfolio() {
           id="music"
           style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
         >
-          <div style={{ marginBottom: "40px" }}>
+          <R>
             <SLabel color="#ff8800">VIBE CHECK</SLabel>
+          </R>
+          <R delay=".05s">
             <BigH>
               THE
               <br />
               <span style={{ color: "#ff8800" }}>JUKEBOX</span>
             </BigH>
+          </R>
+          <R delay=".1s">
             <p
               style={{
                 fontFamily: C.b,
@@ -2896,47 +2973,116 @@ export default function Portfolio() {
                 color: C.grey,
                 lineHeight: 1.75,
                 marginTop: "14px",
+                marginBottom: "32px",
               }}
             >
-              Music I actually listen to. Hit play while you browse.
+              Music I work to. Deep focus, lo-fi, and everything in between.
             </p>
-          </div>
-          <div
-            className="card"
-            style={{ padding: "6px", borderTop: "3px solid #ff8800" }}
-          >
-            <iframe
-              src="https://www.youtube.com/embed/videoseries?list=PLyLXPcBWCFhkQxop7fEudlEE7TeOp1nUb&autoplay=0&rel=0"
-              width="100%"
-              height="80"
-              style={{ border: "none", display: "block", background: C.bg }}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              title="Ishan Playlist"
-            />
-          </div>
+          </R>
+          <R delay=".15s">
+            <a
+              href="https://www.youtube.com/playlist?list=PLyLXPcBWCFhkQxop7fEudlEE7TeOp1nUb"
+              target="_blank"
+              rel="noreferrer"
+              className="bt card"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "24px 28px",
+                textDecoration: "none",
+                background: C.bg2,
+                borderTop: "3px solid #ff8800",
+                borderLeft: "none",
+              }}
+            >
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "18px" }}
+              >
+                <div
+                  style={{
+                    width: "44px",
+                    height: "44px",
+                    background: "#ff8800",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <span style={{ fontSize: "20px" }}>&#9654;</span>
+                </div>
+                <div>
+                  <div
+                    style={{
+                      fontFamily: C.h,
+                      fontSize: "22px",
+                      letterSpacing: "1px",
+                      color: C.white,
+                      lineHeight: 1,
+                    }}
+                  >
+                    ISHAN'S PLAYLIST
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: C.b,
+                      fontSize: "11px",
+                      color: C.grey,
+                      marginTop: "5px",
+                    }}
+                  >
+                    youtube.com · Open in YouTube
+                  </div>
+                </div>
+              </div>
+              <div
+                style={{
+                  fontFamily: C.h,
+                  fontSize: "32px",
+                  color: "#ff8800",
+                  letterSpacing: "1px",
+                }}
+              >
+                &#8594;
+              </div>
+            </a>
+          </R>
         </section>
 
         {/* CONTACT */}
         <section id="contact" style={{ ...W, ...P }}>
-          <div style={{ marginBottom: "56px" }}>
+          <R style={{ marginBottom: "56px" }}>
             <SLabel color={C.red}>CONTACT</SLabel>
             <h2
               className="gh"
-              data-text="READY TO BUILD?"
+              data-text="LET'S CLOSE A DEAL."
               style={{
                 fontFamily: C.h,
                 fontWeight: 400,
-                fontSize: "clamp(52px,10vw,120px)",
+                fontSize: "clamp(42px,8vw,100px)",
                 lineHeight: 0.88,
                 color: C.white,
               }}
             >
-              READY TO
+              LET'S CLOSE
               <br />
-              <span style={{ color: C.red }}>BUILD?</span>
+              <span style={{ color: C.red }}>A DEAL.</span>
             </h2>
-          </div>
+            <p
+              style={{
+                fontFamily: C.b,
+                fontSize: "13px",
+                color: C.grey,
+                lineHeight: 1.75,
+                marginTop: "20px",
+                maxWidth: "500px",
+              }}
+            >
+              Whether you need a website that converts, a BD strategy that
+              drives revenue, or both — let's talk. I respond within 24 hours.
+            </p>
+          </R>
           <div
             style={{
               display: "grid",
