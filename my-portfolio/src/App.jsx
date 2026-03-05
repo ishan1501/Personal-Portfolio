@@ -1,7 +1,283 @@
 import { useState, useEffect, useRef } from "react";
-
 import ishanPhoto from "./assets/ishan.jpeg";
 const PHOTO = ishanPhoto;
+
+function BootScreen({ lines, done }) {
+  const endRef = useRef(null);
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [lines]);
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "#0c0c0c",
+        zIndex: 9999,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "clamp(24px,6vw,80px)",
+        fontFamily: "'IBM Plex Mono','Courier New',monospace",
+        overflow: "hidden",
+        animation: done
+          ? "bootExit .55s cubic-bezier(.76,0,.24,1) forwards"
+          : "none",
+      }}
+    >
+      {/* scanline overlay */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          zIndex: 2,
+          background:
+            "repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px)",
+        }}
+      />
+      {/* red grid */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          zIndex: 1,
+          backgroundImage:
+            "linear-gradient(rgba(255,26,26,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,26,26,0.04) 1px,transparent 1px)",
+          backgroundSize: "48px 48px",
+        }}
+      />
+
+      {/* corner brackets */}
+      {[
+        {
+          top: 20,
+          left: 20,
+          borderTop: "2px solid #ff1a1a",
+          borderLeft: "2px solid #ff1a1a",
+        },
+        {
+          top: 20,
+          right: 20,
+          borderTop: "2px solid #ff1a1a",
+          borderRight: "2px solid #ff1a1a",
+        },
+        {
+          bottom: 20,
+          left: 20,
+          borderBottom: "2px solid #ff1a1a",
+          borderLeft: "2px solid #ff1a1a",
+        },
+        {
+          bottom: 20,
+          right: 20,
+          borderBottom: "2px solid #ff1a1a",
+          borderRight: "2px solid #ff1a1a",
+        },
+      ].map((s, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            width: 28,
+            height: 28,
+            zIndex: 3,
+            opacity: 0.7,
+            ...s,
+          }}
+        />
+      ))}
+
+      {/* logo / ident */}
+      <div
+        style={{
+          position: "relative",
+          zIndex: 4,
+          width: "100%",
+          maxWidth: 640,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: "'Bebas Neue','Barlow Condensed',Impact,sans-serif",
+            fontSize: "clamp(36px,7vw,72px)",
+            letterSpacing: "4px",
+            color: "#f5f5f0",
+            lineHeight: 1,
+            marginBottom: 6,
+            userSelect: "none",
+          }}
+        >
+          ISHAN<span style={{ color: "#ff1a1a" }}>_</span>JAIN
+        </div>
+        <div
+          style={{
+            fontSize: 10,
+            letterSpacing: "4px",
+            color: "#444440",
+            textTransform: "uppercase",
+            marginBottom: 36,
+          }}
+        >
+          PORTFOLIO.SYS · v2.0 · BUILD 2025
+        </div>
+
+        {/* terminal window */}
+        <div
+          style={{
+            border: "1px solid #2a2a2a",
+            background: "#0a0a0a",
+            padding: "20px 24px",
+            position: "relative",
+            minHeight: 200,
+          }}
+        >
+          {/* window chrome */}
+          <div
+            style={{
+              position: "absolute",
+              top: 10,
+              left: 14,
+              display: "flex",
+              gap: 6,
+            }}
+          >
+            {["#ff1a1a", "#ff8800", "#00ff88"].map((c, i) => (
+              <div
+                key={i}
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: c,
+                  opacity: 0.7,
+                }}
+              />
+            ))}
+          </div>
+          <div
+            style={{
+              position: "absolute",
+              top: 9,
+              left: "50%",
+              transform: "translateX(-50%)",
+              fontSize: 9,
+              letterSpacing: "2px",
+              color: "#444440",
+            }}
+          >
+            TERMINAL
+          </div>
+
+          <div style={{ marginTop: 18 }}>
+            {lines.map((line, i) => {
+              const isOk = line.includes("100%");
+              const isWelcome = line.includes("WELCOME");
+              const isNominal = line.includes("NOMINAL");
+              // progress: each 100% line gets progressively greener
+              const okIndex = [
+                "ISHAN_JAIN",
+                "BD_STRATEGY",
+                "REACT",
+                "GLITCH",
+              ].findIndex((k) => line.includes(k));
+              const lineColor = isWelcome
+                ? "#ff1a1a"
+                : isNominal
+                  ? "#00ff88"
+                  : isOk
+                    ? ["#ffcc00", "#ff8800", "#ff4400", "#00ff88"][okIndex] ||
+                      "#f5f5f0"
+                    : "#888880";
+              return (
+                <div
+                  key={i}
+                  style={{
+                    fontSize: "clamp(10px,1.3vw,13px)",
+                    lineHeight: 1.9,
+                    color: lineColor,
+                    animation: "bootLine .18s ease forwards",
+                    fontWeight: isWelcome ? 700 : 400,
+                    letterSpacing: isWelcome ? "3px" : "0.5px",
+                  }}
+                >
+                  {line}
+                  {isOk && !isNominal && !isWelcome && (
+                    <span style={{ color: "#00ff88", marginLeft: 8 }}>✓</span>
+                  )}
+                </div>
+              );
+            })}
+            {/* blinking cursor */}
+            {!done && (
+              <span
+                style={{
+                  display: "inline-block",
+                  width: 9,
+                  height: 14,
+                  background: "#ff1a1a",
+                  marginTop: 4,
+                  animation: "bootBlink .7s step-end infinite",
+                  verticalAlign: "middle",
+                }}
+              />
+            )}
+            <div ref={endRef} />
+          </div>
+        </div>
+
+        {/* progress bar */}
+        <div
+          style={{
+            marginTop: 16,
+            height: 3,
+            background: "#1a1a1a",
+            position: "relative",
+            overflow: "hidden",
+            borderRadius: 1,
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              bottom: 0,
+              background: `linear-gradient(90deg, #ffcc00, #ff8800, #ff1a1a, #00ff88)`,
+              backgroundSize: "300% 100%",
+              backgroundPosition: `${100 - Math.min(lines.length / 7, 1) * 100}% 0`,
+              width: `${Math.min(lines.length / 7, 1) * 100}%`,
+              transition: "width .35s ease, background-position .35s ease",
+              boxShadow: "0 0 8px rgba(255,26,26,0.6)",
+            }}
+          />
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: 8,
+            fontSize: 9,
+            color: "#444440",
+            letterSpacing: "2px",
+          }}
+        >
+          <span>SYSTEM BOOT</span>
+          <span>{Math.round(Math.min(lines.length / 7, 1) * 100)}%</span>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes bootLine{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+        @keyframes bootBlink{0%,100%{opacity:1}50%{opacity:0}}
+        @keyframes bootExit{0%{opacity:1;transform:none}60%{opacity:1;transform:scale(1.015)}100%{opacity:0;transform:scale(.97)}}
+      `}</style>
+    </div>
+  );
+}
 
 const C = {
   bg: "#0c0c0c",
@@ -454,7 +730,112 @@ const CSS = [
   ".minner{display:inline-block;animation:marquee 22s linear infinite}",
   "input,textarea,select{outline:none}",
   "input::placeholder,textarea::placeholder{color:#444440}",
+  ".skel{background:linear-gradient(90deg,#1a1a1a 25%,#252525 50%,#1a1a1a 75%);background-size:200% 100%;animation:skelShimmer 1.4s ease-in-out infinite;border-radius:1px}",
+  ".skel-bar{background:linear-gradient(90deg,#ff1a1a22 25%,#ff1a1a44 50%,#ff1a1a22 75%);background-size:200% 100%;animation:skelShimmer 1.4s ease-in-out infinite}",
+  "@keyframes skelShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}",
+  "@keyframes skelReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}",
 ].join("\n");
+
+function HomeSkeleton({ mobile }) {
+  return (
+    <section
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        padding: "0 clamp(16px,4vw,48px)",
+        position: "relative",
+        borderBottom: "1px solid #2a2a2a",
+      }}
+    >
+      {/* tags row */}
+      <div style={{ display: "flex", gap: 10, marginBottom: 32 }}>
+        <div className="skel" style={{ height: 22, width: 148 }} />
+        <div className="skel" style={{ height: 22, width: 168 }} />
+      </div>
+      {/* big name ISHAN */}
+      <div
+        className="skel"
+        style={{
+          height: "clamp(72px,16vw,190px)",
+          width: "clamp(220px,55vw,660px)",
+          marginBottom: 8,
+        }}
+      />
+      {/* big name JAIN — red tinted */}
+      <div
+        className="skel-bar"
+        style={{
+          height: "clamp(72px,16vw,190px)",
+          width: "clamp(180px,45vw,540px)",
+          marginBottom: 40,
+        }}
+      />
+      {/* bottom row */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: mobile ? "column" : "row",
+          gap: mobile ? 24 : 48,
+          alignItems: "flex-start",
+        }}
+      >
+        <div
+          style={{
+            flex: 1,
+            minWidth: 260,
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+          }}
+        >
+          <div className="skel" style={{ height: 13, width: "90%" }} />
+          <div className="skel" style={{ height: 13, width: "75%" }} />
+          <div className="skel" style={{ height: 13, width: "60%" }} />
+          <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+            <div className="skel-bar" style={{ height: 44, width: 120 }} />
+            <div className="skel" style={{ height: 44, width: 120 }} />
+          </div>
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "20px 36px",
+          }}
+        >
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i}>
+              <div
+                className={i === 0 ? "skel-bar" : "skel"}
+                style={{ height: mobile ? 36 : 46, width: 90, marginBottom: 8 }}
+              />
+              <div className="skel" style={{ height: 10, width: 110 }} />
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* scroll hint */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 28,
+          left: "50%",
+          transform: "translateX(-50%)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 8,
+          opacity: 0.3,
+        }}
+      >
+        <div className="skel" style={{ height: 9, width: 40 }} />
+        <div style={{ width: 1, height: 36, background: "#2a2a2a" }} />
+      </div>
+    </section>
+  );
+}
 
 export default function Portfolio() {
   const canvasRef = useRef(null);
@@ -464,6 +845,12 @@ export default function Portfolio() {
   const curPos = useRef({ x: 0, y: 0 });
   const curTgt = useRef({ x: 0, y: 0 });
   const statsRef = useRef(null);
+
+  const [booted, setBooted] = useState(false);
+  const [bootDone, setBootDone] = useState(false);
+  const [bootLines, setBootLines] = useState([]);
+  const [skelReady, setSkelReady] = useState(false);
+  const [showSkel, setShowSkel] = useState(false);
 
   const [nav, setNav] = useState("home");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -482,6 +869,55 @@ export default function Portfolio() {
   });
   const [sent, setSent] = useState(false);
   const ghRef = useRef(null);
+
+  // Boot sequence
+  useEffect(() => {
+    let cancelled = false;
+    const lines = [
+      "> INITIALIZING PORTFOLIO.SYS...",
+      "> LOADING ISHAN_JAIN.profile ████████████ 100%",
+      "> INJECTING BD_STRATEGY.module ██████████ 100%",
+      "> MOUNTING REACT.engine ████████████████ 100%",
+      "> CALIBRATING GLITCH.renderer ████████ 100%",
+      "> ALL SYSTEMS NOMINAL.",
+      "> WELCOME.",
+    ];
+    let i = 0;
+    // reset state in case StrictMode re-runs
+    setBootLines([]);
+    setBootDone(false);
+    setBooted(false);
+    setShowSkel(false);
+    setSkelReady(false);
+    const run = () => {
+      if (cancelled) return;
+      if (i < lines.length) {
+        const line = lines[i++];
+        setBootLines((p) => [...p, line]);
+        const delay = i === lines.length ? 300 : 100 + Math.random() * 60;
+        setTimeout(run, delay);
+      } else {
+        setTimeout(() => {
+          if (cancelled) return;
+          setBootDone(true);
+          setTimeout(() => {
+            if (cancelled) return;
+            setBooted(true);
+            setShowSkel(true);
+            setTimeout(() => {
+              if (cancelled) return;
+              setShowSkel(false);
+              setSkelReady(true);
+            }, 600);
+          }, 350);
+        }, 300);
+      }
+    };
+    setTimeout(run, 100);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     document.title = "ISHAN JAIN — WEB DESIGNER x BD PROFESSIONAL";
@@ -701,2106 +1137,945 @@ export default function Portfolio() {
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg }}>
-      {!mobile && (
-        <>
-          <div ref={curORef} className="co" />
-          <div ref={curIRef} className="ci" />
-        </>
-      )}
-      <canvas
-        ref={canvasRef}
-        style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 0,
-          pointerEvents: "none",
-          opacity: 0.5,
-        }}
-      />
-      <div className="scanlines" />
-      {[...Array(6)].map((_, i) => (
-        <div
-          key={i}
-          style={{
-            position: "fixed",
-            top: (i + 1) * 16.66 + "%",
-            left: 0,
-            right: 0,
-            height: "1px",
-            background: "rgba(255,255,255,0.02)",
-            zIndex: 1,
-            pointerEvents: "none",
-          }}
-        />
-      ))}
+      {/* Boot screen — shown until booted */}
+      {!booted && <BootScreen lines={bootLines} done={bootDone} />}
 
-      {/* NAV */}
-      <nav
+      {/* Main portfolio — hidden during boot, fades in after */}
+      <div
         style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 500,
-          background: "rgba(12,12,12,0.96)",
-          borderBottom: "2px solid " + C.red,
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
+          opacity: booted ? 1 : 0,
+          transition: "opacity 0.6s ease",
+          pointerEvents: booted ? "auto" : "none",
         }}
       >
-        <div
+        {!mobile && (
+          <>
+            <div ref={curORef} className="co" />
+            <div ref={curIRef} className="ci" />
+          </>
+        )}
+        <canvas
+          ref={canvasRef}
           style={{
-            ...W,
-            padding: "0 24px",
-            height: "52px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
+            position: "fixed",
+            inset: 0,
+            zIndex: 0,
+            pointerEvents: "none",
+            opacity: 0.5,
+          }}
+        />
+        <div className="scanlines" />
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            style={{
+              position: "fixed",
+              top: (i + 1) * 16.66 + "%",
+              left: 0,
+              right: 0,
+              height: "1px",
+              background: "rgba(255,255,255,0.02)",
+              zIndex: 1,
+              pointerEvents: "none",
+            }}
+          />
+        ))}
+
+        {/* NAV */}
+        <nav
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 500,
+            background: "rgba(12,12,12,0.96)",
+            borderBottom: "2px solid " + C.red,
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
           }}
         >
           <div
-            onClick={() => goto("home")}
-            className="gh"
-            data-text="ISHAN JAIN"
             style={{
-              fontFamily: C.h,
-              fontSize: "26px",
-              letterSpacing: "2px",
-              color: C.white,
-              cursor: "pointer",
+              ...W,
+              padding: "0 24px",
+              height: "52px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
             }}
           >
-            ISHAN JAIN<span style={{ color: C.red }}>_</span>
+            <div
+              onClick={() => goto("home")}
+              className="gh"
+              data-text="ISHAN JAIN"
+              style={{
+                fontFamily: C.h,
+                fontSize: "26px",
+                letterSpacing: "2px",
+                color: C.white,
+                cursor: "pointer",
+              }}
+            >
+              ISHAN JAIN<span style={{ color: C.red }}>_</span>
+            </div>
+            {!mobile && (
+              <div style={{ display: "flex", gap: "20px" }}>
+                {NAV.map((n) => (
+                  <span
+                    key={n}
+                    className={"nl" + (nav === n.toLowerCase() ? " act" : "")}
+                    onClick={() => goto(n.toLowerCase())}
+                  >
+                    {n}
+                  </span>
+                ))}
+              </div>
+            )}
+            {!mobile && (
+              <a
+                href="https://wa.me/918279988591"
+                target="_blank"
+                rel="noreferrer"
+                className="bt"
+                style={{
+                  padding: "8px 20px",
+                  background: C.red,
+                  color: C.bg,
+                  fontFamily: C.b,
+                  fontWeight: 700,
+                  fontSize: "12px",
+                  letterSpacing: "1px",
+                  textDecoration: "none",
+                  textTransform: "uppercase",
+                }}
+              >
+                HIRE ME
+              </a>
+            )}
+            {mobile && (
+              <button
+                className="bt"
+                onClick={() => setMenuOpen((m) => !m)}
+                style={{
+                  background: "none",
+                  color: C.white,
+                  fontSize: "22px",
+                  padding: "4px 8px",
+                  border: "1px solid " + C.border,
+                  lineHeight: 1,
+                  fontFamily: "sans-serif",
+                }}
+              >
+                {menuOpen ? "✕" : "☰"}
+              </button>
+            )}
           </div>
-          {!mobile && (
-            <div style={{ display: "flex", gap: "20px" }}>
+          {menuOpen && (
+            <div
+              style={{
+                background: C.bg,
+                borderTop: "1px solid " + C.border,
+                padding: "16px 24px",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
               {NAV.map((n) => (
                 <span
                   key={n}
-                  className={"nl" + (nav === n.toLowerCase() ? " act" : "")}
                   onClick={() => goto(n.toLowerCase())}
+                  style={{
+                    fontFamily: C.s,
+                    fontSize: "18px",
+                    fontWeight: 700,
+                    letterSpacing: "2px",
+                    textTransform: "uppercase",
+                    color: nav === n.toLowerCase() ? C.red : C.grey,
+                    padding: "12px 0",
+                    borderBottom: "1px solid " + C.border,
+                    cursor: "pointer",
+                  }}
                 >
                   {n}
                 </span>
               ))}
-            </div>
-          )}
-          {!mobile && (
-            <a
-              href="https://wa.me/918279988591"
-              target="_blank"
-              rel="noreferrer"
-              className="bt"
-              style={{
-                padding: "8px 20px",
-                background: C.red,
-                color: C.bg,
-                fontFamily: C.b,
-                fontWeight: 700,
-                fontSize: "12px",
-                letterSpacing: "1px",
-                textDecoration: "none",
-                textTransform: "uppercase",
-              }}
-            >
-              HIRE ME
-            </a>
-          )}
-          {mobile && (
-            <button
-              className="bt"
-              onClick={() => setMenuOpen((m) => !m)}
-              style={{
-                background: "none",
-                color: C.white,
-                fontSize: "22px",
-                padding: "4px 8px",
-                border: "1px solid " + C.border,
-                lineHeight: 1,
-                fontFamily: "sans-serif",
-              }}
-            >
-              {menuOpen ? "✕" : "☰"}
-            </button>
-          )}
-        </div>
-        {menuOpen && (
-          <div
-            style={{
-              background: C.bg,
-              borderTop: "1px solid " + C.border,
-              padding: "16px 24px",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            {NAV.map((n) => (
-              <span
-                key={n}
-                onClick={() => goto(n.toLowerCase())}
+              <a
+                href="https://wa.me/918279988591"
+                target="_blank"
+                rel="noreferrer"
                 style={{
-                  fontFamily: C.s,
-                  fontSize: "18px",
+                  marginTop: "14px",
+                  padding: "14px",
+                  textAlign: "center",
+                  background: C.red,
+                  color: C.bg,
+                  fontFamily: C.b,
                   fontWeight: 700,
+                  textDecoration: "none",
+                  fontSize: "14px",
                   letterSpacing: "2px",
                   textTransform: "uppercase",
-                  color: nav === n.toLowerCase() ? C.red : C.grey,
-                  padding: "12px 0",
-                  borderBottom: "1px solid " + C.border,
-                  cursor: "pointer",
+                  display: "block",
                 }}
               >
-                {n}
-              </span>
-            ))}
-            <a
-              href="https://wa.me/918279988591"
-              target="_blank"
-              rel="noreferrer"
-              style={{
-                marginTop: "14px",
-                padding: "14px",
-                textAlign: "center",
-                background: C.red,
-                color: C.bg,
-                fontFamily: C.b,
-                fontWeight: 700,
-                textDecoration: "none",
-                fontSize: "14px",
-                letterSpacing: "2px",
-                textTransform: "uppercase",
-                display: "block",
-              }}
-            >
-              HIRE ME
-            </a>
-          </div>
-        )}
-      </nav>
-
-      <div style={{ position: "relative", zIndex: 3, paddingTop: "52px" }}>
-        {/* HERO */}
-        <section
-          id="home"
-          style={{
-            minHeight: "100vh",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            padding: "0 clamp(16px,4vw,48px)",
-            borderBottom: "1px solid " + C.border,
-            position: "relative",
-          }}
-        >
-          {!mobile && (
-            <div
-              style={{
-                position: "absolute",
-                top: "20px",
-                right: "24px",
-                fontFamily: C.b,
-                fontSize: "10px",
-                color: C.dim,
-                letterSpacing: "1px",
-                lineHeight: 1.8,
-              }}
-            >
-              <div>28.4595 N</div>
-              <div>77.0266 E</div>
-              <div style={{ color: C.red, marginTop: "4px" }}>GURUGRAM</div>
+                HIRE ME
+              </a>
             </div>
           )}
-          <R>
-            <div
-              style={{
-                marginBottom: "28px",
-                display: "flex",
-                gap: "10px",
-                flexWrap: "wrap",
-              }}
-            >
-              <Tag>AVAILABLE FOR HIRE</Tag>
-              <Tag color="#ff8800">BD + WEB SPECIALIST</Tag>
-            </div>
-          </R>
-          <R delay=".06s">
-            <h1
-              className="gh"
-              data-text="ISHAN"
-              style={{
-                fontFamily: C.h,
-                fontWeight: 400,
-                fontSize: "clamp(88px,20vw,240px)",
-                lineHeight: 0.82,
-                letterSpacing: "2px",
-                color: C.white,
-              }}
-            >
-              ISHAN
-            </h1>
-          </R>
-          <R delay=".1s">
-            <h1
-              style={{
-                fontFamily: C.h,
-                fontWeight: 400,
-                fontSize: "clamp(88px,20vw,240px)",
-                lineHeight: 0.82,
-                letterSpacing: "2px",
-                color: "transparent",
-                WebkitTextStroke: "2px " + C.red,
-              }}
-            >
-              JAIN
-            </h1>
-          </R>
-          <R delay=".15s">
-            <div
-              style={{
-                marginTop: "36px",
-                display: "flex",
-                flexDirection: mobile ? "column" : "row",
-                alignItems: "flex-start",
-                gap: mobile ? "24px" : "48px",
-                flexWrap: "wrap",
-              }}
-            >
-              <div style={{ flex: 1, minWidth: "260px" }}>
-                <p
-                  style={{
-                    fontFamily: C.b,
-                    fontSize: "clamp(12px,1.4vw,15px)",
-                    color: C.grey,
-                    lineHeight: 1.75,
-                    maxWidth: "460px",
-                  }}
-                >
-                  I build{" "}
-                  <span style={{ color: C.white }}>websites that convert</span>{" "}
-                  — and{" "}
-                  <span style={{ color: C.white }}>
-                    BD strategies that grow revenue.
-                  </span>
-                  <br />
-                  <br />
-                  Ex-Edoofa · B.Tech CSE · Freelance Designer
-                </p>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "10px",
-                    marginTop: "28px",
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <button
-                    className="bt"
-                    onClick={() => goto("services")}
-                    style={{
-                      padding: "12px 28px",
-                      background: C.red,
-                      color: C.bg,
-                      fontFamily: C.b,
-                      fontWeight: 700,
-                      fontSize: "13px",
-                      letterSpacing: "1.5px",
-                      textTransform: "uppercase",
-                      animation: "rPulse 2.5s ease-in-out infinite",
-                    }}
-                  >
-                    HIRE ME
-                  </button>
-                  <button
-                    className="bt"
-                    onClick={() => goto("projects")}
-                    style={{
-                      padding: "12px 28px",
-                      background: "transparent",
-                      border: "1px solid " + C.border,
-                      color: C.white,
-                      fontFamily: C.b,
-                      fontSize: "13px",
-                      letterSpacing: "1px",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    SEE WORK
-                  </button>
-                </div>
-              </div>
-              <div
-                ref={statsRef}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "20px 36px",
-                }}
-              >
-                {STATS.map((s, i) => (
-                  <div key={i}>
-                    <div
-                      style={{
-                        fontFamily: C.h,
-                        fontSize: mobile ? "38px" : "50px",
-                        lineHeight: 1,
-                        color: i === 0 ? C.red : C.white,
-                        letterSpacing: "1px",
-                      }}
-                    >
-                      <Counter {...s} trigger={statsLive} />
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: C.b,
-                        fontSize: "10px",
-                        color: C.grey,
-                        letterSpacing: "1.5px",
-                        textTransform: "uppercase",
-                        marginTop: "5px",
-                        maxWidth: "130px",
-                      }}
-                    >
-                      {s.lab}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </R>
-          <div
+        </nav>
+
+        <div style={{ position: "relative", zIndex: 3, paddingTop: "52px" }}>
+          {/* HERO */}
+          {showSkel && <HomeSkeleton mobile={mobile} />}
+          <section
+            id="home"
             style={{
-              position: "absolute",
-              bottom: "28px",
-              left: "50%",
-              transform: "translateX(-50%)",
+              minHeight: "100vh",
               display: "flex",
               flexDirection: "column",
-              alignItems: "center",
-              gap: "8px",
-              animation: "floatY 3s ease-in-out infinite",
-              opacity: 0.4,
+              justifyContent: "center",
+              padding: "0 clamp(16px,4vw,48px)",
+              borderBottom: "1px solid " + C.border,
+              position: "relative",
+              visibility: showSkel ? "hidden" : "visible",
+              animation: skelReady ? "skelReveal .4s ease forwards" : "none",
             }}
           >
-            <span
-              style={{
-                fontFamily: C.b,
-                fontSize: "9px",
-                letterSpacing: "4px",
-                color: C.dim,
-                textTransform: "uppercase",
-              }}
-            >
-              SCROLL
-            </span>
-            <div
-              style={{
-                width: "1px",
-                height: "36px",
-                background:
-                  "linear-gradient(to bottom," + C.red + ",transparent)",
-              }}
-            />
-          </div>
-        </section>
-
-        {/* MARQUEE */}
-        <div
-          style={{ background: C.red, padding: "10px 0", overflow: "hidden" }}
-        >
-          <div className="mwrap">
-            <div className="minner">
-              {"WEB DESIGN · BUSINESS DEVELOPMENT · REVENUE GROWTH · LEAD CONVERSION · CLIENT MANAGEMENT · REACT · FIGMA · GO-TO-MARKET · BD STRATEGY · ".repeat(
-                4,
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* ABOUT */}
-        <section
-          id="about"
-          style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
-        >
-          <R style={{ marginBottom: "56px" }}>
-            <SLabel>ABOUT</SLabel>
-            <BigH>
-              THE PERSON
-              <br />
-              <span style={{ color: C.red }}>BEHIND</span>
-              <br />
-              THE WORK
-            </BigH>
-          </R>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: mobile ? "1fr" : "1fr 1.8fr",
-              gap: "40px",
-              alignItems: "start",
-            }}
-          >
-            <R mode="left">
-              <div>
-                <div style={{ position: "relative" }}>
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "-6px",
-                      left: "-6px",
-                      width: "24px",
-                      height: "24px",
-                      borderTop: "2px solid " + C.red,
-                      borderLeft: "2px solid " + C.red,
-                      zIndex: 2,
-                    }}
-                  />
-                  <div
-                    style={{
-                      position: "absolute",
-                      bottom: "-6px",
-                      right: "-6px",
-                      width: "24px",
-                      height: "24px",
-                      borderBottom: "2px solid " + C.red,
-                      borderRight: "2px solid " + C.red,
-                      zIndex: 2,
-                    }}
-                  />
-                  <div
-                    style={{
-                      width: "100%",
-                      aspectRatio: "3/3.5",
-                      background: C.bg3,
-                      border: "1px solid " + C.border,
-                      overflow: "hidden",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {PHOTO ? (
-                      <img
-                        src={PHOTO}
-                        alt="Ishan"
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
-                      />
-                    ) : (
-                      <>
-                        <div
-                          style={{
-                            fontFamily: C.h,
-                            fontSize: "88px",
-                            color: C.red,
-                            lineHeight: 1,
-                          }}
-                        >
-                          IJ
-                        </div>
-                        <div
-                          style={{
-                            fontFamily: C.b,
-                            fontSize: "9px",
-                            color: C.dim,
-                            letterSpacing: "3px",
-                            marginTop: "8px",
-                          }}
-                        >
-                          UPLOAD PHOTO
-                        </div>
-                      </>
-                    )}
-                  </div>
-                  <div
-                    className="card"
-                    style={{ marginTop: "12px", padding: "16px 20px" }}
-                  >
-                    <div
-                      style={{
-                        fontFamily: C.h,
-                        fontSize: "22px",
-                        letterSpacing: "1px",
-                        color: C.white,
-                      }}
-                    >
-                      ISHAN JAIN
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: C.b,
-                        fontSize: "11px",
-                        color: C.grey,
-                        marginTop: "4px",
-                      }}
-                    >
-                      GURUGRAM, HARYANA
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: C.b,
-                        fontSize: "11px",
-                        color: C.grey,
-                        marginTop: "2px",
-                      }}
-                    >
-                      jainishan18@gmail.com
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "8px",
-                        marginTop: "12px",
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      {[
-                        ["GH", "https://github.com/ishan1501"],
-                        ["LI", "https://linkedin.com/in/ishan1501/"],
-                        ["EM", "mailto:jainishan18@gmail.com"],
-                      ].map(([l, h]) => (
-                        <a
-                          key={l}
-                          href={h}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="bt"
-                          style={{
-                            padding: "5px 12px",
-                            background: "transparent",
-                            border: "1px solid " + C.border,
-                            color: C.grey,
-                            fontFamily: C.b,
-                            fontWeight: 700,
-                            fontSize: "11px",
-                            textDecoration: "none",
-                            letterSpacing: "1px",
-                          }}
-                        >
-                          [{l}]
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </R>
-            <R delay=".1s">
+            {!mobile && (
               <div
                 style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "18px",
+                  position: "absolute",
+                  top: "20px",
+                  right: "24px",
+                  fontFamily: C.b,
+                  fontSize: "10px",
+                  color: C.dim,
+                  letterSpacing: "1px",
+                  lineHeight: 1.8,
                 }}
               >
-                <p
-                  style={{
-                    fontFamily: C.b,
-                    fontSize: "14px",
-                    color: C.white,
-                    lineHeight: 1.85,
-                  }}
-                >
-                  Business development first — technology second. I spent a year
-                  at Edoofa owning the full post-enrollment funnel for 500+
-                  international student leads, contributing to ~70% of company
-                  revenue while coordinating across time zones and managing
-                  everything from CRM to visa documentation.
-                </p>
-                <p
-                  style={{
-                    fontFamily: C.b,
-                    fontSize: "12px",
-                    color: C.grey,
-                    lineHeight: 1.85,
-                  }}
-                >
-                  That ground-level BD experience taught me what clients
-                  actually need, how decisions get made, and what it takes to
-                  convert interest into revenue. Most developers build what
-                  they're told. I build what works.
-                </p>
-                <p
-                  style={{
-                    fontFamily: C.b,
-                    fontSize: "12px",
-                    color: C.grey,
-                    lineHeight: 1.85,
-                  }}
-                >
-                  Now I bring that commercial mindset to every web project —
-                  treating each site like a sales asset, not just a design
-                  exercise.
-                </p>
+                <div>28.4595 N</div>
+                <div>77.0266 E</div>
+                <div style={{ color: C.red, marginTop: "4px" }}>GURUGRAM</div>
+              </div>
+            )}
+            <R>
+              <div
+                style={{
+                  marginBottom: "28px",
+                  display: "flex",
+                  gap: "10px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <Tag>AVAILABLE FOR HIRE</Tag>
+                <Tag color="#ff8800">BD + WEB SPECIALIST</Tag>
+              </div>
+            </R>
+            <R delay=".06s">
+              <h1
+                className="gh"
+                data-text="ISHAN"
+                style={{
+                  fontFamily: C.h,
+                  fontWeight: 400,
+                  fontSize: "clamp(88px,20vw,240px)",
+                  lineHeight: 0.82,
+                  letterSpacing: "2px",
+                  color: C.white,
+                }}
+              >
+                ISHAN
+              </h1>
+            </R>
+            <R delay=".1s">
+              <h1
+                style={{
+                  fontFamily: C.h,
+                  fontWeight: 400,
+                  fontSize: "clamp(88px,20vw,240px)",
+                  lineHeight: 0.82,
+                  letterSpacing: "2px",
+                  color: "transparent",
+                  WebkitTextStroke: "2px " + C.red,
+                }}
+              >
+                JAIN
+              </h1>
+            </R>
+            <R delay=".15s">
+              <div
+                style={{
+                  marginTop: "36px",
+                  display: "flex",
+                  flexDirection: mobile ? "column" : "row",
+                  alignItems: "flex-start",
+                  gap: mobile ? "24px" : "48px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div style={{ flex: 1, minWidth: "260px" }}>
+                  <p
+                    style={{
+                      fontFamily: C.b,
+                      fontSize: "clamp(12px,1.4vw,15px)",
+                      color: C.grey,
+                      lineHeight: 1.75,
+                      maxWidth: "460px",
+                    }}
+                  >
+                    I build{" "}
+                    <span style={{ color: C.white }}>
+                      websites that convert
+                    </span>{" "}
+                    — and{" "}
+                    <span style={{ color: C.white }}>
+                      BD strategies that grow revenue.
+                    </span>
+                    <br />
+                    <br />
+                    Ex-Edoofa · B.Tech CSE · Freelance Designer
+                  </p>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "10px",
+                      marginTop: "28px",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <button
+                      className="bt"
+                      onClick={() => goto("services")}
+                      style={{
+                        padding: "12px 28px",
+                        background: C.red,
+                        color: C.bg,
+                        fontFamily: C.b,
+                        fontWeight: 700,
+                        fontSize: "13px",
+                        letterSpacing: "1.5px",
+                        textTransform: "uppercase",
+                        animation: "rPulse 2.5s ease-in-out infinite",
+                      }}
+                    >
+                      HIRE ME
+                    </button>
+                    <button
+                      className="bt"
+                      onClick={() => goto("projects")}
+                      style={{
+                        padding: "12px 28px",
+                        background: "transparent",
+                        border: "1px solid " + C.border,
+                        color: C.white,
+                        fontFamily: C.b,
+                        fontSize: "13px",
+                        letterSpacing: "1px",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      SEE WORK
+                    </button>
+                  </div>
+                </div>
                 <div
+                  ref={statsRef}
                   style={{
                     display: "grid",
                     gridTemplateColumns: "1fr 1fr",
-                    gap: "1px",
-                    background: C.border,
-                    border: "1px solid " + C.border,
+                    gap: "20px 36px",
                   }}
                 >
-                  {[
-                    ["DEGREE", "B.Tech CSE — LPU"],
-                    ["LOCATION", "Gurugram, Haryana"],
-                    ["LANGUAGES", "English, Hindi"],
-                    ["STATUS", "Open to Work"],
-                  ].map(([k, v]) => (
-                    <div
-                      key={k}
-                      style={{ background: C.bg2, padding: "14px 16px" }}
-                    >
+                  {STATS.map((s, i) => (
+                    <div key={i}>
                       <div
                         style={{
-                          fontFamily: C.b,
-                          fontSize: "9px",
-                          color: C.red,
-                          letterSpacing: "2px",
-                          marginBottom: "5px",
+                          fontFamily: C.h,
+                          fontSize: mobile ? "38px" : "50px",
+                          lineHeight: 1,
+                          color: i === 0 ? C.red : C.white,
+                          letterSpacing: "1px",
                         }}
                       >
-                        {k}
+                        <Counter {...s} trigger={statsLive} />
                       </div>
                       <div
                         style={{
-                          fontFamily: C.s,
-                          fontSize: "14px",
-                          fontWeight: 700,
-                          color: C.white,
+                          fontFamily: C.b,
+                          fontSize: "10px",
+                          color: C.grey,
+                          letterSpacing: "1.5px",
+                          textTransform: "uppercase",
+                          marginTop: "5px",
+                          maxWidth: "130px",
                         }}
                       >
-                        {v}
+                        {s.lab}
                       </div>
                     </div>
                   ))}
                 </div>
-                <div
-                  className="card"
-                  style={{ padding: "20px", borderLeft: "3px solid " + C.red }}
-                >
-                  <div
-                    style={{
-                      fontFamily: C.b,
-                      fontSize: "9px",
-                      color: C.red,
-                      letterSpacing: "2px",
-                      marginBottom: "14px",
-                    }}
-                  >
-                    EDUCATION
-                  </div>
-                  {[
-                    ["B.Tech, Computer Science & Engineering", "LPU"],
-                    ["Intermediate — 12th", "I.G.P.I.C Manjhola Billoch"],
-                    ["Matriculation — 10th", "PMSS Dhampur, Bijnor"],
-                  ].map(([d, inst], idx) => (
+              </div>
+            </R>
+            <div
+              style={{
+                position: "absolute",
+                bottom: "28px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "8px",
+                animation: "floatY 3s ease-in-out infinite",
+                opacity: 0.4,
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: C.b,
+                  fontSize: "9px",
+                  letterSpacing: "4px",
+                  color: C.dim,
+                  textTransform: "uppercase",
+                }}
+              >
+                SCROLL
+              </span>
+              <div
+                style={{
+                  width: "1px",
+                  height: "36px",
+                  background:
+                    "linear-gradient(to bottom," + C.red + ",transparent)",
+                }}
+              />
+            </div>
+          </section>
+
+          {/* MARQUEE */}
+          <div
+            style={{ background: C.red, padding: "10px 0", overflow: "hidden" }}
+          >
+            <div className="mwrap">
+              <div className="minner">
+                {"WEB DESIGN · BUSINESS DEVELOPMENT · REVENUE GROWTH · LEAD CONVERSION · CLIENT MANAGEMENT · REACT · FIGMA · GO-TO-MARKET · BD STRATEGY · ".repeat(
+                  4,
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ABOUT */}
+          <section
+            id="about"
+            style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
+          >
+            <R style={{ marginBottom: "56px" }}>
+              <SLabel>ABOUT</SLabel>
+              <BigH>
+                THE PERSON
+                <br />
+                <span style={{ color: C.red }}>BEHIND</span>
+                <br />
+                THE WORK
+              </BigH>
+            </R>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: mobile ? "1fr" : "1fr 1.8fr",
+                gap: "40px",
+                alignItems: "start",
+              }}
+            >
+              <R mode="left">
+                <div>
+                  <div style={{ position: "relative" }}>
                     <div
-                      key={idx}
                       style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        gap: "12px",
-                        paddingBottom: idx < 2 ? "10px" : "0",
-                        marginBottom: idx < 2 ? "10px" : "0",
-                        borderBottom:
-                          idx < 2 ? "1px solid " + C.border : "none",
+                        position: "absolute",
+                        top: "-6px",
+                        left: "-6px",
+                        width: "24px",
+                        height: "24px",
+                        borderTop: "2px solid " + C.red,
+                        borderLeft: "2px solid " + C.red,
+                        zIndex: 2,
                       }}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: "-6px",
+                        right: "-6px",
+                        width: "24px",
+                        height: "24px",
+                        borderBottom: "2px solid " + C.red,
+                        borderRight: "2px solid " + C.red,
+                        zIndex: 2,
+                      }}
+                    />
+                    <div
+                      style={{
+                        width: "100%",
+                        aspectRatio: "3/3.5",
+                        background: C.bg3,
+                        border: "1px solid " + C.border,
+                        overflow: "hidden",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {PHOTO ? (
+                        <img
+                          src={PHOTO}
+                          alt="Ishan"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      ) : (
+                        <>
+                          <div
+                            style={{
+                              fontFamily: C.h,
+                              fontSize: "88px",
+                              color: C.red,
+                              lineHeight: 1,
+                            }}
+                          >
+                            IJ
+                          </div>
+                          <div
+                            style={{
+                              fontFamily: C.b,
+                              fontSize: "9px",
+                              color: C.dim,
+                              letterSpacing: "3px",
+                              marginTop: "8px",
+                            }}
+                          >
+                            PHOTO PLACEHOLDER
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    <div
+                      className="card"
+                      style={{ marginTop: "12px", padding: "16px 20px" }}
                     >
                       <div
                         style={{
-                          fontFamily: C.b,
-                          fontSize: "12px",
+                          fontFamily: C.h,
+                          fontSize: "22px",
+                          letterSpacing: "1px",
                           color: C.white,
                         }}
                       >
-                        {d}
+                        ISHAN JAIN
                       </div>
                       <div
                         style={{
                           fontFamily: C.b,
                           fontSize: "11px",
                           color: C.grey,
-                          textAlign: "right",
-                          flexShrink: 0,
+                          marginTop: "4px",
                         }}
                       >
-                        {inst}
+                        GURUGRAM, HARYANA
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </R>
-          </div>
-        </section>
-
-        {/* EXPERIENCE */}
-        <section
-          id="experience"
-          style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
-        >
-          <R style={{ marginBottom: "56px" }}>
-            <SLabel color={C.red}>TRACK RECORD</SLabel>
-            <BigH>
-              WORK
-              <br />
-              <span style={{ color: C.red }}>EXPERIENCE</span>
-            </BigH>
-          </R>
-          {EXP.map((job, ji) => (
-            <R key={job.co} delay={ji * 0.08 + "s"}>
-              <div
-                style={{
-                  position: "relative",
-                  paddingLeft: mobile ? "0" : "32px",
-                  paddingBottom: "24px",
-                }}
-              >
-                {!mobile && (
-                  <>
-                    <div
-                      style={{
-                        position: "absolute",
-                        left: 0,
-                        top: "20px",
-                        bottom: 0,
-                        width: "1px",
-                        background:
-                          "linear-gradient(to bottom," +
-                          job.color +
-                          "55,transparent)",
-                        display: ji === EXP.length - 1 ? "none" : "block",
-                      }}
-                    />
-                    <div
-                      style={{
-                        position: "absolute",
-                        left: "-5px",
-                        top: "18px",
-                        width: "11px",
-                        height: "11px",
-                        background: job.color,
-                        boxShadow: "0 0 12px " + job.color,
-                      }}
-                    />
-                  </>
-                )}
-                <div
-                  className="card"
-                  style={{ borderLeft: "3px solid " + job.color }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      flexWrap: "wrap",
-                      gap: "12px",
-                      marginBottom: "8px",
-                      padding: "24px 24px 0",
-                    }}
-                  >
-                    <div>
                       <div
                         style={{
-                          fontFamily: C.h,
-                          fontSize: mobile ? "20px" : "26px",
-                          letterSpacing: "1px",
-                          color: C.white,
-                          marginBottom: "4px",
+                          fontFamily: C.b,
+                          fontSize: "11px",
+                          color: C.grey,
+                          marginTop: "2px",
                         }}
                       >
-                        {job.role}
+                        jainishan18@gmail.com
                       </div>
                       <div
                         style={{
                           display: "flex",
-                          gap: "10px",
+                          gap: "8px",
+                          marginTop: "12px",
                           flexWrap: "wrap",
                         }}
                       >
-                        <span
-                          style={{
-                            fontFamily: C.s,
-                            fontWeight: 800,
-                            fontSize: "14px",
-                            color: job.color,
-                            textTransform: "uppercase",
-                          }}
-                        >
-                          {job.co}
-                        </span>
-                        <span
-                          style={{
-                            fontFamily: C.b,
-                            fontSize: "11px",
-                            color: C.grey,
-                          }}
-                        >
-                          {job.type}
-                        </span>
+                        {[
+                          ["GH", "https://github.com/ishan1501"],
+                          ["LI", "https://linkedin.com/in/ishan1501/"],
+                          ["EM", "mailto:jainishan18@gmail.com"],
+                        ].map(([l, h]) => (
+                          <a
+                            key={l}
+                            href={h}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="bt"
+                            style={{
+                              padding: "5px 12px",
+                              background: "transparent",
+                              border: "1px solid " + C.border,
+                              color: C.grey,
+                              fontFamily: C.b,
+                              fontWeight: 700,
+                              fontSize: "11px",
+                              textDecoration: "none",
+                              letterSpacing: "1px",
+                            }}
+                          >
+                            [{l}]
+                          </a>
+                        ))}
                       </div>
                     </div>
-                    <Tag color={job.color}>{job.period}</Tag>
                   </div>
+                </div>
+              </R>
+              <R delay=".1s">
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "18px",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontFamily: C.b,
+                      fontSize: "14px",
+                      color: C.white,
+                      lineHeight: 1.85,
+                    }}
+                  >
+                    Business development first — technology second. I spent a
+                    year at Edoofa owning the full post-enrollment funnel for
+                    500+ international student leads, contributing to ~70% of
+                    company revenue while coordinating across time zones and
+                    managing everything from CRM to visa documentation.
+                  </p>
                   <p
                     style={{
                       fontFamily: C.b,
                       fontSize: "12px",
-                      color: C.dim,
-                      fontStyle: "italic",
-                      padding: "12px 24px 16px",
-                      borderBottom: "1px solid " + C.border,
+                      color: C.grey,
+                      lineHeight: 1.85,
                     }}
                   >
-                    {job.desc}
+                    That ground-level BD experience taught me what clients
+                    actually need, how decisions get made, and what it takes to
+                    convert interest into revenue. Most developers build what
+                    they're told. I build what works.
                   </p>
-                  <ul
+                  <p
                     style={{
-                      listStyle: "none",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "6px",
-                      padding: "16px 24px 24px",
+                      fontFamily: C.b,
+                      fontSize: "12px",
+                      color: C.grey,
+                      lineHeight: 1.85,
                     }}
                   >
-                    {job.bullets.map((b, bi) => (
-                      <li
-                        key={bi}
-                        style={{
-                          display: "flex",
-                          gap: "12px",
-                          alignItems: "flex-start",
-                        }}
+                    Now I bring that commercial mindset to every web project —
+                    treating each site like a sales asset, not just a design
+                    exercise.
+                  </p>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: "1px",
+                      background: C.border,
+                      border: "1px solid " + C.border,
+                    }}
+                  >
+                    {[
+                      ["DEGREE", "B.Tech CSE — LPU"],
+                      ["LOCATION", "Gurugram, Haryana"],
+                      ["LANGUAGES", "English, Hindi"],
+                      ["STATUS", "Open to Work"],
+                    ].map(([k, v]) => (
+                      <div
+                        key={k}
+                        style={{ background: C.bg2, padding: "14px 16px" }}
                       >
-                        <span
-                          style={{
-                            color: job.color,
-                            flexShrink: 0,
-                            fontFamily: C.b,
-                            fontSize: "10px",
-                            marginTop: "5px",
-                          }}
-                        >
-                          &#9654;
-                        </span>
-                        <span
+                        <div
                           style={{
                             fontFamily: C.b,
-                            fontSize: "12px",
-                            color: C.grey,
-                            lineHeight: 1.75,
+                            fontSize: "9px",
+                            color: C.red,
+                            letterSpacing: "2px",
+                            marginBottom: "5px",
                           }}
                         >
-                          {b}
-                        </span>
-                      </li>
+                          {k}
+                        </div>
+                        <div
+                          style={{
+                            fontFamily: C.s,
+                            fontSize: "14px",
+                            fontWeight: 700,
+                            color: C.white,
+                          }}
+                        >
+                          {v}
+                        </div>
+                      </div>
                     ))}
-                  </ul>
-                </div>
-              </div>
-            </R>
-          ))}
-        </section>
-
-        {/* PROJECTS - live GitHub */}
-        <section
-          id="projects"
-          style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
-        >
-          <R style={{ marginBottom: "56px" }}>
-            <SLabel color="#ff8800">PORTFOLIO</SLabel>
-            <BigH>
-              GITHUB
-              <br />
-              <span style={{ color: "#ff8800" }}>PROJECTS</span>
-            </BigH>
-          </R>
-          {reposLoad ? (
-            <div
-              style={{
-                display: "flex",
-                gap: "8px",
-                alignItems: "center",
-                padding: "40px 0",
-              }}
-            >
-              {[0, 1, 2].map((d) => (
-                <span
-                  key={d}
-                  style={{
-                    width: "6px",
-                    height: "6px",
-                    background: C.red,
-                    display: "inline-block",
-                    animation:
-                      "blink 1.2s ease-in-out " + d * 0.3 + "s infinite",
-                  }}
-                />
-              ))}
-              <span
-                style={{
-                  fontFamily: C.b,
-                  fontSize: "12px",
-                  color: C.grey,
-                  marginLeft: "8px",
-                  letterSpacing: "1px",
-                }}
-              >
-                FETCHING REPOS...
-              </span>
-            </div>
-          ) : repos.length === 0 ? (
-            <div
-              style={{
-                fontFamily: C.b,
-                fontSize: "13px",
-                color: C.grey,
-                padding: "40px 0",
-              }}
-            >
-              NO REPOS FOUND —{" "}
-              <a
-                href="https://github.com/ishan1501"
-                target="_blank"
-                rel="noreferrer"
-                style={{ color: C.red }}
-              >
-                VIEW ON GITHUB
-              </a>
-            </div>
-          ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: mobile ? "1fr" : "1fr 1fr 1fr",
-                gap: "1px",
-                background: C.border,
-                border: "1px solid " + C.border,
-              }}
-            >
-              {repos.slice(0, 12).map((repo, pi) => {
-                const col = RCOLS[pi % RCOLS.length];
-                return (
-                  <a
-                    key={repo.id}
-                    href={repo.html_url}
-                    target="_blank"
-                    rel="noreferrer"
+                  </div>
+                  <div
                     className="card"
                     style={{
-                      background: C.bg2,
-                      display: "flex",
-                      flexDirection: "column",
-                      textDecoration: "none",
-                      borderTop: "2px solid " + col,
+                      padding: "20px",
+                      borderLeft: "3px solid " + C.red,
                     }}
                   >
                     <div
                       style={{
-                        padding: "16px 18px 12px",
-                        borderBottom: "1px solid " + C.border,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
+                        fontFamily: C.b,
+                        fontSize: "9px",
+                        color: C.red,
+                        letterSpacing: "2px",
+                        marginBottom: "14px",
                       }}
                     >
+                      EDUCATION
+                    </div>
+                    {[
+                      ["B.Tech, Computer Science & Engineering", "LPU"],
+                      ["Intermediate — 12th", "I.G.P.I.C Manjhola Billoch"],
+                      ["Matriculation — 10th", "PMSS Dhampur, Bijnor"],
+                    ].map(([d, inst], idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: "12px",
+                          paddingBottom: idx < 2 ? "10px" : "0",
+                          marginBottom: idx < 2 ? "10px" : "0",
+                          borderBottom:
+                            idx < 2 ? "1px solid " + C.border : "none",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontFamily: C.b,
+                            fontSize: "12px",
+                            color: C.white,
+                          }}
+                        >
+                          {d}
+                        </div>
+                        <div
+                          style={{
+                            fontFamily: C.b,
+                            fontSize: "11px",
+                            color: C.grey,
+                            textAlign: "right",
+                            flexShrink: 0,
+                          }}
+                        >
+                          {inst}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </R>
+            </div>
+          </section>
+
+          {/* EXPERIENCE */}
+          <section
+            id="experience"
+            style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
+          >
+            <R style={{ marginBottom: "56px" }}>
+              <SLabel color={C.red}>TRACK RECORD</SLabel>
+              <BigH>
+                WORK
+                <br />
+                <span style={{ color: C.red }}>EXPERIENCE</span>
+              </BigH>
+            </R>
+            {EXP.map((job, ji) => (
+              <R key={job.co} delay={ji * 0.08 + "s"}>
+                <div
+                  style={{
+                    position: "relative",
+                    paddingLeft: mobile ? "0" : "32px",
+                    paddingBottom: "24px",
+                  }}
+                >
+                  {!mobile && (
+                    <>
                       <div
                         style={{
-                          width: "8px",
-                          height: "8px",
-                          background: col,
-                          flexShrink: 0,
+                          position: "absolute",
+                          left: 0,
+                          top: "20px",
+                          bottom: 0,
+                          width: "1px",
+                          background:
+                            "linear-gradient(to bottom," +
+                            job.color +
+                            "55,transparent)",
+                          display: ji === EXP.length - 1 ? "none" : "block",
                         }}
                       />
                       <div
                         style={{
-                          fontFamily: C.h,
-                          fontSize: "18px",
-                          letterSpacing: "1px",
-                          color: C.white,
-                          lineHeight: 1,
-                          flex: 1,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
+                          position: "absolute",
+                          left: "-5px",
+                          top: "18px",
+                          width: "11px",
+                          height: "11px",
+                          background: job.color,
+                          boxShadow: "0 0 12px " + job.color,
                         }}
-                      >
-                        {repo.name.toUpperCase().replace(/-/g, " ")}
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        padding: "14px 18px 18px",
-                        flex: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "10px",
-                      }}
-                    >
-                      <p
-                        style={{
-                          fontFamily: C.b,
-                          fontSize: "12px",
-                          color: C.grey,
-                          lineHeight: 1.75,
-                          flex: 1,
-                          minHeight: "48px",
-                        }}
-                      >
-                        {repo.description || "No description provided."}
-                      </p>
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "12px",
-                          alignItems: "center",
-                          flexWrap: "wrap",
-                        }}
-                      >
-                        {repo.language && (
-                          <span
-                            style={{
-                              fontFamily: C.b,
-                              fontSize: "10px",
-                              color: col,
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "5px",
-                            }}
-                          >
-                            <span
-                              style={{
-                                width: "7px",
-                                height: "7px",
-                                borderRadius: "50%",
-                                background: col,
-                                display: "inline-block",
-                              }}
-                            />
-                            {repo.language.toUpperCase()}
-                          </span>
-                        )}
-                        {repo.stargazers_count > 0 && (
-                          <span
-                            style={{
-                              fontFamily: C.b,
-                              fontSize: "10px",
-                              color: C.grey,
-                            }}
-                          >
-                            &#9733; {repo.stargazers_count}
-                          </span>
-                        )}
-                        <span
-                          style={{
-                            fontFamily: C.b,
-                            fontSize: "10px",
-                            color: C.dim,
-                            marginLeft: "auto",
-                          }}
-                        >
-                          {new Date(repo.updated_at)
-                            .toLocaleDateString("en-GB", {
-                              month: "short",
-                              year: "numeric",
-                            })
-                            .toUpperCase()}
-                        </span>
-                      </div>
-                      {repo.homepage && (
-                        <div
-                          style={{
-                            fontFamily: C.b,
-                            fontSize: "10px",
-                            color: col,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {repo.homepage.replace(/^https?:\/\//, "")}
-                        </div>
-                      )}
-                    </div>
-                  </a>
-                );
-              })}
-            </div>
-          )}
-          <div style={{ textAlign: "center", marginTop: "24px" }}>
-            <a
-              href="https://github.com/ishan1501"
-              target="_blank"
-              rel="noreferrer"
-              className="bt card"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "10px",
-                padding: "12px 28px",
-                textDecoration: "none",
-                color: C.white,
-                fontFamily: C.b,
-                fontSize: "12px",
-                letterSpacing: "1.5px",
-                textTransform: "uppercase",
-                background: C.bg2,
-              }}
-            >
-              VIEW ALL ON GITHUB
-            </a>
-          </div>
-        </section>
-
-        {/* PROCESS */}
-        <section
-          id="process"
-          style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
-        >
-          <R style={{ marginBottom: "56px" }}>
-            <SLabel color="#00ff88">HOW I WORK</SLabel>
-            <BigH>
-              THE
-              <br />
-              <span style={{ color: "#00ff88" }}>PROCESS</span>
-            </BigH>
-            <p
-              style={{
-                fontFamily: C.b,
-                fontSize: "13px",
-                color: C.grey,
-                lineHeight: 1.75,
-                marginTop: "16px",
-                maxWidth: "480px",
-              }}
-            >
-              Transparent, structured, accountable.
-            </p>
-          </R>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: mobile ? "1fr" : "repeat(4,1fr)",
-              gap: "1px",
-              background: C.border,
-              border: "1px solid " + C.border,
-            }}
-          >
-            {PROCESS.map((p) => (
-              <div
-                key={p.n}
-                className="card"
-                style={{
-                  background: C.bg2,
-                  padding: "28px 22px",
-                  borderTop: "3px solid " + p.c,
-                  position: "relative",
-                }}
-              >
-                <div
-                  style={{
-                    fontFamily: C.h,
-                    fontSize: "56px",
-                    color: p.c + "15",
-                    position: "absolute",
-                    top: "8px",
-                    right: "14px",
-                    lineHeight: 1,
-                  }}
-                >
-                  {p.n}
-                </div>
-                <div
-                  style={{
-                    fontFamily: C.b,
-                    fontSize: "10px",
-                    color: p.c,
-                    letterSpacing: "3px",
-                    marginBottom: "14px",
-                  }}
-                >
-                  STEP {p.n}
-                </div>
-                <div
-                  className="gh"
-                  data-text={p.t}
-                  style={{
-                    fontFamily: C.h,
-                    fontSize: "28px",
-                    letterSpacing: "1px",
-                    color: C.white,
-                    marginBottom: "14px",
-                  }}
-                >
-                  {p.t}
-                </div>
-                <p
-                  style={{
-                    fontFamily: C.b,
-                    fontSize: "12px",
-                    color: C.grey,
-                    lineHeight: 1.8,
-                  }}
-                >
-                  {p.d}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div style={{ textAlign: "center", marginTop: "32px" }}>
-            <a
-              href="https://wa.me/918279988591?text=Hi+Ishan!+Discovery+call."
-              target="_blank"
-              rel="noreferrer"
-              className="bt"
-              style={{
-                padding: "14px 36px",
-                background: "#00ff88",
-                color: C.bg,
-                fontFamily: C.b,
-                fontWeight: 700,
-                fontSize: "13px",
-                letterSpacing: "1.5px",
-                textTransform: "uppercase",
-                display: "inline-block",
-                textDecoration: "none",
-              }}
-            >
-              BOOK DISCOVERY CALL
-            </a>
-          </div>
-        </section>
-
-        {/* SKILLS */}
-        <section
-          id="skills"
-          style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
-        >
-          <R style={{ marginBottom: "56px" }}>
-            <SLabel color="#00aaff">CAPABILITIES</SLabel>
-            <BigH>
-              SKILL
-              <br />
-              <span style={{ color: "#00aaff" }}>SET</span>
-            </BigH>
-          </R>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: mobile ? "1fr" : "1fr 1fr 1fr",
-              gap: "24px",
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  fontFamily: C.b,
-                  fontSize: "9px",
-                  color: C.red,
-                  letterSpacing: "3px",
-                  textTransform: "uppercase",
-                  marginBottom: "16px",
-                }}
-              >
-                — TECHNICAL
-              </div>
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: "8px" }}
-              >
-                {SKILLS_T.map((s) => (
+                      />
+                    </>
+                  )}
                   <div
-                    key={s.n}
                     className="card"
-                    style={{ padding: "12px 14px" }}
+                    style={{ borderLeft: "3px solid " + job.color }}
                   >
                     <div
                       style={{
                         display: "flex",
                         justifyContent: "space-between",
-                        marginBottom: "7px",
+                        alignItems: "flex-start",
+                        flexWrap: "wrap",
+                        gap: "12px",
+                        marginBottom: "8px",
+                        padding: "24px 24px 0",
                       }}
                     >
-                      <span
-                        style={{
-                          fontFamily: C.b,
-                          fontSize: "12px",
-                          color: C.white,
-                        }}
-                      >
-                        {s.n}
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: C.b,
-                          fontSize: "10px",
-                          color: C.grey,
-                        }}
-                      >
-                        {s.p}%
-                      </span>
-                    </div>
-                    <div style={{ height: "2px", background: C.border }}>
-                      <div
-                        style={{
-                          height: "100%",
-                          width: s.p + "%",
-                          background: s.c,
-                          boxShadow: "0 0 6px " + s.c,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div>
-              <div
-                style={{
-                  fontFamily: C.b,
-                  fontSize: "9px",
-                  color: "#ff8800",
-                  letterSpacing: "3px",
-                  textTransform: "uppercase",
-                  marginBottom: "16px",
-                }}
-              >
-                — BUSINESS
-              </div>
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: "6px" }}
-              >
-                {SKILLS_B.map((s) => (
-                  <div
-                    key={s}
-                    className="card"
-                    style={{
-                      padding: "10px 14px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                    }}
-                  >
-                    <span style={{ color: "#ff8800", fontSize: "8px" }}>
-                      &#9654;
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: C.b,
-                        fontSize: "12px",
-                        color: C.grey,
-                      }}
-                    >
-                      {s}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div>
-              <div
-                style={{
-                  fontFamily: C.b,
-                  fontSize: "9px",
-                  color: "#00ff88",
-                  letterSpacing: "3px",
-                  textTransform: "uppercase",
-                  marginBottom: "16px",
-                }}
-              >
-                — SOFT SKILLS
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: "6px",
-                  marginBottom: "24px",
-                }}
-              >
-                {SKILLS_S.map((s) => (
-                  <span
-                    key={s}
-                    style={{
-                      fontFamily: C.b,
-                      fontSize: "11px",
-                      color: C.grey,
-                      border: "1px solid " + C.border,
-                      padding: "4px 10px",
-                    }}
-                  >
-                    {s}
-                  </span>
-                ))}
-              </div>
-              <div
-                style={{
-                  fontFamily: C.b,
-                  fontSize: "9px",
-                  color: "#00aaff",
-                  letterSpacing: "3px",
-                  textTransform: "uppercase",
-                  marginBottom: "14px",
-                }}
-              >
-                — LANGUAGES
-              </div>
-              <div
-                style={{ display: "flex", gap: "8px", marginBottom: "20px" }}
-              >
-                {[
-                  ["ENGLISH", "Fluent"],
-                  ["HINDI", "Native"],
-                ].map(([l, lv]) => (
-                  <div
-                    key={l}
-                    className="card"
-                    style={{
-                      padding: "12px 16px",
-                      flex: 1,
-                      textAlign: "center",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontFamily: C.h,
-                        fontSize: "18px",
-                        color: C.white,
-                      }}
-                    >
-                      {l}
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: C.b,
-                        fontSize: "10px",
-                        color: C.grey,
-                        marginTop: "3px",
-                      }}
-                    >
-                      {lv}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div
-                style={{
-                  fontFamily: C.b,
-                  fontSize: "9px",
-                  color: C.dim,
-                  letterSpacing: "3px",
-                  textTransform: "uppercase",
-                  marginBottom: "14px",
-                }}
-              >
-                — TOOLS
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
-                {[
-                  "Figma",
-                  "Canva",
-                  "Notion",
-                  "WhatsApp Biz",
-                  "Meta Suite",
-                  "Google Workspace",
-                  "VS Code",
-                  "GitHub",
-                ].map((t) => (
-                  <span
-                    key={t}
-                    style={{
-                      fontFamily: C.b,
-                      fontSize: "10px",
-                      color: C.dim,
-                      border: "1px solid " + C.border,
-                      padding: "3px 8px",
-                    }}
-                  >
-                    {t}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* SERVICES */}
-        <section
-          id="services"
-          style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
-        >
-          <R style={{ marginBottom: "56px" }}>
-            <SLabel color={C.red}>SERVICES</SLabel>
-            <BigH>
-              WHAT I<br />
-              <span style={{ color: C.red }}>OFFER</span>
-            </BigH>
-          </R>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: mobile ? "1fr" : "1.5fr 1fr",
-              gap: "1px",
-              background: C.border,
-              border: "1px solid " + C.border,
-            }}
-          >
-            <div
-              className="card"
-              style={{
-                background: C.bg2,
-                borderTop: "3px solid " + C.red,
-                padding: "36px",
-                gridRow: mobile ? "auto" : "span 2",
-                display: "flex",
-                flexDirection: "column",
-                gap: "20px",
-              }}
-            >
-              <div>
-                <div
-                  style={{
-                    fontFamily: C.b,
-                    fontSize: "9px",
-                    color: C.red,
-                    letterSpacing: "3px",
-                    textTransform: "uppercase",
-                    marginBottom: "16px",
-                  }}
-                >
-                  01 — FLAGSHIP
-                </div>
-                <h3
-                  style={{
-                    fontFamily: C.h,
-                    fontSize: mobile ? "30px" : "40px",
-                    color: C.white,
-                    lineHeight: 1,
-                    marginBottom: "4px",
-                  }}
-                >
-                  PREMIUM WEB
-                </h3>
-                <h3
-                  style={{
-                    fontFamily: C.h,
-                    fontSize: mobile ? "30px" : "40px",
-                    color: C.red,
-                    lineHeight: 1,
-                    marginBottom: "20px",
-                  }}
-                >
-                  DESIGN & DEV
-                </h3>
-                <p
-                  style={{
-                    fontFamily: C.b,
-                    fontSize: "13px",
-                    color: C.grey,
-                    lineHeight: 1.85,
-                    marginBottom: "20px",
-                  }}
-                >
-                  From Figma to deployed. Performance-first websites built to
-                  convert. I bring a BD lens to every project — I care about
-                  your conversion rate, not just your colour palette.
-                </p>
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: "6px",
-                    marginBottom: "20px",
-                  }}
-                >
-                  {[
-                    "Next.js",
-                    "React",
-                    "Three.js",
-                    "Figma",
-                    "Tailwind",
-                    "Framer Motion",
-                    "SEO",
-                    "Mobile-First",
-                  ].map((t) => (
-                    <Tag key={t}>{t}</Tag>
-                  ))}
-                </div>
-                <ul
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "8px",
-                    listStyle: "none",
-                    marginBottom: "28px",
-                  }}
-                >
-                  {[
-                    "Custom design — no templates",
-                    "Full mobile responsiveness",
-                    "Core Web Vitals optimised",
-                    "AI chatbot integration available",
-                    "Delivered in 1–3 weeks",
-                  ].map((pt) => (
-                    <li
-                      key={pt}
-                      style={{
-                        display: "flex",
-                        gap: "10px",
-                        alignItems: "center",
-                        fontFamily: C.b,
-                        fontSize: "12px",
-                        color: C.grey,
-                      }}
-                    >
-                      <span style={{ color: "#00ff88" }}>✓</span>
-                      {pt}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <a
-                href="https://wa.me/918279988591?text=Hi+Ishan!+Web+design+enquiry."
-                target="_blank"
-                rel="noreferrer"
-                className="bt"
-                style={{
-                  display: "block",
-                  padding: "14px 24px",
-                  textAlign: "center",
-                  background: C.red,
-                  color: C.bg,
-                  fontFamily: C.b,
-                  fontWeight: 700,
-                  fontSize: "13px",
-                  textDecoration: "none",
-                  letterSpacing: "1.5px",
-                  textTransform: "uppercase",
-                }}
-              >
-                START A PROJECT
-              </a>
-            </div>
-            {[
-              {
-                n: "02",
-                t: "BD & SALES CONSULTING",
-                c: "#ff8800",
-                d: "Go-to-market, key account frameworks, conversion funnel optimisation. Backed by real EdTech experience driving ~70% of company revenue.",
-              },
-              {
-                n: "03",
-                t: "SOCIAL MEDIA + AI WORKFLOWS",
-                c: "#00aaff",
-                d: "Campaigns that drive engagement. Prompt engineering and workflow automation — practical AI, not theory.",
-              },
-            ].map((sv, i) => (
-              <div
-                key={sv.n}
-                className="card"
-                style={{
-                  background: C.bg2,
-                  padding: "28px",
-                  borderTop: "3px solid " + sv.c,
-                }}
-              >
-                <div
-                  style={{
-                    fontFamily: C.b,
-                    fontSize: "9px",
-                    color: sv.c,
-                    letterSpacing: "3px",
-                    marginBottom: "12px",
-                  }}
-                >
-                  {sv.n}
-                </div>
-                <div
-                  style={{
-                    fontFamily: C.h,
-                    fontSize: "22px",
-                    color: C.white,
-                    marginBottom: "12px",
-                    lineHeight: 1.1,
-                  }}
-                >
-                  {sv.t}
-                </div>
-                <p
-                  style={{
-                    fontFamily: C.b,
-                    fontSize: "12px",
-                    color: C.grey,
-                    lineHeight: 1.8,
-                    marginBottom: "16px",
-                  }}
-                >
-                  {sv.d}
-                </p>
-                <a
-                  href="https://wa.me/918279988591"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="bt"
-                  style={{
-                    display: "inline-block",
-                    padding: "8px 18px",
-                    border: "1px solid " + sv.c + "44",
-                    color: sv.c,
-                    fontFamily: C.b,
-                    fontSize: "11px",
-                    textDecoration: "none",
-                    letterSpacing: "1px",
-                    textTransform: "uppercase",
-                    background: "transparent",
-                  }}
-                >
-                  ENQUIRE
-                </a>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* GITHUB */}
-        <section
-          id="github"
-          style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
-          ref={ghRef}
-        >
-          <R style={{ marginBottom: "48px" }}>
-            <SLabel color={C.grey}>OPEN SOURCE</SLabel>
-            <BigH>
-              GITHUB
-              <br />
-              <span style={{ color: C.red }}>ACTIVITY</span>
-            </BigH>
-          </R>
-
-          {/* Profile banner */}
-          <div
-            className="card"
-            style={{
-              padding: "24px 28px",
-              marginBottom: "20px",
-              display: "flex",
-              alignItems: "center",
-              gap: "24px",
-              flexWrap: "wrap",
-              borderTop: "2px solid " + C.red,
-            }}
-          >
-            {ghProfile && ghProfile.avatar_url && (
-              <img
-                src={ghProfile.avatar_url}
-                alt="avatar"
-                style={{
-                  width: "60px",
-                  height: "60px",
-                  borderRadius: "0",
-                  border: "2px solid " + C.red,
-                  flexShrink: 0,
-                }}
-              />
-            )}
-            <div style={{ flex: 1, minWidth: "180px" }}>
-              <div
-                style={{
-                  fontFamily: C.h,
-                  fontSize: "26px",
-                  letterSpacing: "2px",
-                  color: C.white,
-                  lineHeight: 1,
-                }}
-              >
-                {ghProfile ? ghProfile.login.toUpperCase() : "ISHAN1501"}
-              </div>
-              <div
-                style={{
-                  fontFamily: C.b,
-                  fontSize: "11px",
-                  color: C.grey,
-                  marginTop: "5px",
-                }}
-              >
-                {ghProfile && ghProfile.bio
-                  ? ghProfile.bio
-                  : "React · Next.js · Three.js · Web Designer & BD Professional"}
-              </div>
-              {ghProfile && ghProfile.location && (
-                <div
-                  style={{
-                    fontFamily: C.b,
-                    fontSize: "10px",
-                    color: C.dim,
-                    marginTop: "4px",
-                  }}
-                >
-                  {ghProfile.location}
-                </div>
-              )}
-            </div>
-            <a
-              href="https://github.com/ishan1501"
-              target="_blank"
-              rel="noreferrer"
-              className="bt"
-              style={{
-                padding: "10px 22px",
-                background: C.red,
-                color: C.bg,
-                fontFamily: C.b,
-                fontWeight: 700,
-                fontSize: "12px",
-                textDecoration: "none",
-                letterSpacing: "1px",
-                textTransform: "uppercase",
-              }}
-            >
-              VIEW PROFILE
-            </a>
-          </div>
-
-          {/* Animated stat counters */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: mobile ? "1fr 1fr" : "repeat(4,1fr)",
-              gap: "1px",
-              background: C.border,
-              border: "1px solid " + C.border,
-              marginBottom: "20px",
-            }}
-          >
-            {[
-              {
-                label: "PUBLIC REPOS",
-                val: ghProfile ? ghProfile.public_repos : 0,
-                color: C.red,
-              },
-              {
-                label: "FOLLOWERS",
-                val: ghProfile ? ghProfile.followers : 0,
-                color: "#ff8800",
-              },
-              {
-                label: "TOTAL STARS",
-                val: repos.reduce(function (s, r) {
-                  return s + (r.stargazers_count || 0);
-                }, 0),
-                color: "#ffcc00",
-              },
-              {
-                label: "TOTAL FORKS",
-                val: repos.reduce(function (s, r) {
-                  return s + (r.forks_count || 0);
-                }, 0),
-                color: "#00ff88",
-              },
-            ].map(function (st, i) {
-              return (
-                <div
-                  key={i}
-                  style={{
-                    background: C.bg2,
-                    padding: "22px 20px",
-                    borderTop: "2px solid " + st.color,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontFamily: C.h,
-                      fontSize: mobile ? "38px" : "48px",
-                      lineHeight: 1,
-                      color: st.color,
-                    }}
-                  >
-                    <Counter end={st.val} trigger={ghLive} />
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: C.b,
-                      fontSize: "9px",
-                      color: C.grey,
-                      letterSpacing: "2px",
-                      marginTop: "7px",
-                    }}
-                  >
-                    {st.label}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Language breakdown */}
-          {repos.length > 0 &&
-            (function () {
-              const langMap = {};
-              repos.forEach(function (r) {
-                if (r.language)
-                  langMap[r.language] = (langMap[r.language] || 0) + 1;
-              });
-              const langs = Object.entries(langMap)
-                .sort(function (a, b) {
-                  return b[1] - a[1];
-                })
-                .slice(0, 6);
-              const total = langs.reduce(function (s, l) {
-                return s + l[1];
-              }, 0);
-              const LCOLS = [
-                C.red,
-                "#ff8800",
-                "#00ff88",
-                "#00aaff",
-                "#ff44aa",
-                "#ffcc00",
-              ];
-              return (
-                <div
-                  className="card"
-                  style={{ padding: "22px 24px", marginBottom: "20px" }}
-                >
-                  <div
-                    style={{
-                      fontFamily: C.b,
-                      fontSize: "9px",
-                      color: C.dim,
-                      letterSpacing: "3px",
-                      textTransform: "uppercase",
-                      marginBottom: "16px",
-                    }}
-                  >
-                    LANGUAGE BREAKDOWN
-                  </div>
-                  {/* Bar */}
-                  <div
-                    style={{
-                      display: "flex",
-                      height: "8px",
-                      gap: "2px",
-                      marginBottom: "16px",
-                    }}
-                  >
-                    {langs.map(function (l, i) {
-                      return (
+                      <div>
                         <div
-                          key={l[0]}
                           style={{
-                            flex: l[1] / total,
-                            background: LCOLS[i],
-                            height: "100%",
-                            boxShadow: "0 0 6px " + LCOLS[i] + "66",
-                          }}
-                        />
-                      );
-                    })}
-                  </div>
-                  {/* Legend */}
-                  <div
-                    style={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      gap: "12px 24px",
-                    }}
-                  >
-                    {langs.map(function (l, i) {
-                      const pct = Math.round((l[1] / total) * 100);
-                      return (
-                        <div
-                          key={l[0]}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "7px",
+                            fontFamily: C.h,
+                            fontSize: mobile ? "20px" : "26px",
+                            letterSpacing: "1px",
+                            color: C.white,
+                            marginBottom: "4px",
                           }}
                         >
-                          <div
+                          {job.role}
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: "10px",
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <span
                             style={{
-                              width: "10px",
-                              height: "10px",
-                              background: LCOLS[i],
-                              flexShrink: 0,
+                              fontFamily: C.s,
+                              fontWeight: 800,
+                              fontSize: "14px",
+                              color: job.color,
+                              textTransform: "uppercase",
                             }}
-                          />
+                          >
+                            {job.co}
+                          </span>
                           <span
                             style={{
                               fontFamily: C.b,
                               fontSize: "11px",
-                              color: C.white,
+                              color: C.grey,
                             }}
                           >
-                            {l[0]}
+                            {job.type}
+                          </span>
+                        </div>
+                      </div>
+                      <Tag color={job.color}>{job.period}</Tag>
+                    </div>
+                    <p
+                      style={{
+                        fontFamily: C.b,
+                        fontSize: "12px",
+                        color: C.dim,
+                        fontStyle: "italic",
+                        padding: "12px 24px 16px",
+                        borderBottom: "1px solid " + C.border,
+                      }}
+                    >
+                      {job.desc}
+                    </p>
+                    <ul
+                      style={{
+                        listStyle: "none",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "6px",
+                        padding: "16px 24px 24px",
+                      }}
+                    >
+                      {job.bullets.map((b, bi) => (
+                        <li
+                          key={bi}
+                          style={{
+                            display: "flex",
+                            gap: "12px",
+                            alignItems: "flex-start",
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: job.color,
+                              flexShrink: 0,
+                              fontFamily: C.b,
+                              fontSize: "10px",
+                              marginTop: "5px",
+                            }}
+                          >
+                            &#9654;
                           </span>
                           <span
                             style={{
                               fontFamily: C.b,
-                              fontSize: "10px",
-                              color: C.dim,
+                              fontSize: "12px",
+                              color: C.grey,
+                              lineHeight: 1.75,
                             }}
                           >
-                            {pct}%
+                            {b}
                           </span>
-                        </div>
-                      );
-                    })}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
-              );
-            })()}
+              </R>
+            ))}
+          </section>
 
-          {/* Contribution heatmap */}
-          <div
-            className="card"
-            style={{
-              padding: "22px 24px",
-              marginBottom: "20px",
-              overflowX: "auto",
-            }}
+          {/* PROJECTS - live GitHub */}
+          <section
+            id="projects"
+            style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
           >
-            <div
-              style={{
-                fontFamily: C.b,
-                fontSize: "9px",
-                color: C.dim,
-                letterSpacing: "3px",
-                textTransform: "uppercase",
-                marginBottom: "16px",
-              }}
-            >
-              CONTRIBUTION HEATMAP — LAST 365 DAYS
-              {ghContribs.length > 0 && (
-                <span style={{ color: C.red, marginLeft: "12px" }}>
-                  {ghContribs.reduce(function (s, d) {
-                    return s + d.count;
-                  }, 0)}{" "}
-                  TOTAL
-                </span>
-              )}
-            </div>
-            <GHHeatmap contributions={ghContribs} mobile={mobile} />
-          </div>
-
-          {/* Top repos by stars */}
-          {repos.length > 0 && (
-            <div>
-              <div
-                style={{
-                  fontFamily: C.b,
-                  fontSize: "9px",
-                  color: C.dim,
-                  letterSpacing: "3px",
-                  textTransform: "uppercase",
-                  marginBottom: "12px",
-                }}
-              >
-                TOP REPOS BY STARS
-              </div>
+            <R style={{ marginBottom: "56px" }}>
+              <SLabel color="#ff8800">PORTFOLIO</SLabel>
+              <BigH>
+                GITHUB
+                <br />
+                <span style={{ color: "#ff8800" }}>PROJECTS</span>
+              </BigH>
+            </R>
+            {reposLoad ? (
               <div
                 style={{
                   display: "grid",
@@ -2810,113 +2085,204 @@ export default function Portfolio() {
                   border: "1px solid " + C.border,
                 }}
               >
-                {repos
-                  .slice()
-                  .sort(function (a, b) {
-                    return b.stargazers_count - a.stargazers_count;
-                  })
-                  .slice(0, 6)
-                  .map(function (repo, pi) {
-                    const col = RCOLS[pi % RCOLS.length];
-                    return (
-                      <a
-                        key={repo.id}
-                        href={repo.html_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="card"
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      background: C.bg2,
+                      padding: 0,
+                      overflow: "hidden",
+                    }}
+                  >
+                    {/* top bar (colored accent) */}
+                    <div
+                      className="skel-bar"
+                      style={{ height: 3, width: "100%", marginBottom: 0 }}
+                    />
+                    <div
+                      style={{
+                        padding: "14px 16px",
+                        borderBottom: "1px solid " + C.border,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                      }}
+                    >
+                      <div
+                        className="skel"
+                        style={{ width: 8, height: 8, flexShrink: 0 }}
+                      />
+                      <div
+                        className="skel"
+                        style={{ height: 14, flex: 1, maxWidth: "70%" }}
+                      />
+                    </div>
+                    <div
+                      style={{
+                        padding: "14px 16px 18px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 8,
+                      }}
+                    >
+                      <div
+                        className="skel"
+                        style={{ height: 11, width: "95%" }}
+                      />
+                      <div
+                        className="skel"
+                        style={{ height: 11, width: "75%" }}
+                      />
+                      <div
+                        className="skel"
+                        style={{ height: 11, width: "55%", marginTop: 4 }}
+                      />
+                      <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+                        <div
+                          className="skel"
+                          style={{ height: 10, width: 48 }}
+                        />
+                        <div
+                          className="skel"
+                          style={{ height: 10, width: 32 }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : repos.length === 0 ? (
+              <div
+                style={{
+                  fontFamily: C.b,
+                  fontSize: "13px",
+                  color: C.grey,
+                  padding: "40px 0",
+                }}
+              >
+                NO REPOS FOUND —{" "}
+                <a
+                  href="https://github.com/ishan1501"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ color: C.red }}
+                >
+                  VIEW ON GITHUB
+                </a>
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: mobile ? "1fr" : "1fr 1fr 1fr",
+                  gap: "1px",
+                  background: C.border,
+                  border: "1px solid " + C.border,
+                }}
+              >
+                {repos.slice(0, 12).map((repo, pi) => {
+                  const col = RCOLS[pi % RCOLS.length];
+                  return (
+                    <a
+                      key={repo.id}
+                      href={repo.html_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="card"
+                      style={{
+                        background: C.bg2,
+                        display: "flex",
+                        flexDirection: "column",
+                        textDecoration: "none",
+                        borderTop: "2px solid " + col,
+                      }}
+                    >
+                      <div
                         style={{
-                          background: C.bg2,
+                          padding: "16px 18px 12px",
+                          borderBottom: "1px solid " + C.border,
                           display: "flex",
-                          flexDirection: "column",
-                          textDecoration: "none",
-                          borderTop: "2px solid " + col,
+                          alignItems: "center",
+                          gap: "8px",
                         }}
                       >
                         <div
                           style={{
-                            padding: "14px 16px 10px",
-                            borderBottom: "1px solid " + C.border,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
+                            width: "8px",
+                            height: "8px",
+                            background: col,
+                            flexShrink: 0,
                           }}
-                        >
-                          <div
-                            style={{
-                              width: "7px",
-                              height: "7px",
-                              background: col,
-                              flexShrink: 0,
-                            }}
-                          />
-                          <div
-                            style={{
-                              fontFamily: C.h,
-                              fontSize: "16px",
-                              letterSpacing: "1px",
-                              color: C.white,
-                              lineHeight: 1,
-                              flex: 1,
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            {repo.name.toUpperCase().replace(/-/g, " ")}
-                          </div>
-                        </div>
+                        />
                         <div
                           style={{
-                            padding: "12px 16px",
+                            fontFamily: C.h,
+                            fontSize: "18px",
+                            letterSpacing: "1px",
+                            color: C.white,
+                            lineHeight: 1,
                             flex: 1,
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "8px",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
                           }}
                         >
-                          <p
-                            style={{
-                              fontFamily: C.b,
-                              fontSize: "11px",
-                              color: C.grey,
-                              lineHeight: 1.7,
-                              flex: 1,
-                            }}
-                          >
-                            {repo.description || "No description."}
-                          </p>
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: "12px",
-                              alignItems: "center",
-                              flexWrap: "wrap",
-                            }}
-                          >
-                            {repo.language && (
+                          {repo.name.toUpperCase().replace(/-/g, " ")}
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          padding: "14px 18px 18px",
+                          flex: 1,
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "10px",
+                        }}
+                      >
+                        <p
+                          style={{
+                            fontFamily: C.b,
+                            fontSize: "12px",
+                            color: C.grey,
+                            lineHeight: 1.75,
+                            flex: 1,
+                            minHeight: "48px",
+                          }}
+                        >
+                          {repo.description || "No description provided."}
+                        </p>
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: "12px",
+                            alignItems: "center",
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          {repo.language && (
+                            <span
+                              style={{
+                                fontFamily: C.b,
+                                fontSize: "10px",
+                                color: col,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "5px",
+                              }}
+                            >
                               <span
                                 style={{
-                                  fontFamily: C.b,
-                                  fontSize: "10px",
-                                  color: col,
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "4px",
+                                  width: "7px",
+                                  height: "7px",
+                                  borderRadius: "50%",
+                                  background: col,
+                                  display: "inline-block",
                                 }}
-                              >
-                                <span
-                                  style={{
-                                    width: "6px",
-                                    height: "6px",
-                                    borderRadius: "50%",
-                                    background: col,
-                                    display: "inline-block",
-                                  }}
-                                />
-                                {repo.language}
-                              </span>
-                            )}
+                              />
+                              {repo.language.toUpperCase()}
+                            </span>
+                          )}
+                          {repo.stargazers_count > 0 && (
                             <span
                               style={{
                                 fontFamily: C.b,
@@ -2926,426 +2292,1575 @@ export default function Portfolio() {
                             >
                               &#9733; {repo.stargazers_count}
                             </span>
+                          )}
+                          <span
+                            style={{
+                              fontFamily: C.b,
+                              fontSize: "10px",
+                              color: C.dim,
+                              marginLeft: "auto",
+                            }}
+                          >
+                            {new Date(repo.updated_at)
+                              .toLocaleDateString("en-GB", {
+                                month: "short",
+                                year: "numeric",
+                              })
+                              .toUpperCase()}
+                          </span>
+                        </div>
+                        {repo.homepage && (
+                          <div
+                            style={{
+                              fontFamily: C.b,
+                              fontSize: "10px",
+                              color: col,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {repo.homepage.replace(/^https?:\/\//, "")}
+                          </div>
+                        )}
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
+            )}
+            <div style={{ textAlign: "center", marginTop: "24px" }}>
+              <a
+                href="https://github.com/ishan1501"
+                target="_blank"
+                rel="noreferrer"
+                className="bt card"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: "12px 28px",
+                  textDecoration: "none",
+                  color: C.white,
+                  fontFamily: C.b,
+                  fontSize: "12px",
+                  letterSpacing: "1.5px",
+                  textTransform: "uppercase",
+                  background: C.bg2,
+                }}
+              >
+                VIEW ALL ON GITHUB
+              </a>
+            </div>
+          </section>
+
+          {/* PROCESS */}
+          <section
+            id="process"
+            style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
+          >
+            <R style={{ marginBottom: "56px" }}>
+              <SLabel color="#00ff88">HOW I WORK</SLabel>
+              <BigH>
+                THE
+                <br />
+                <span style={{ color: "#00ff88" }}>PROCESS</span>
+              </BigH>
+              <p
+                style={{
+                  fontFamily: C.b,
+                  fontSize: "13px",
+                  color: C.grey,
+                  lineHeight: 1.75,
+                  marginTop: "16px",
+                  maxWidth: "480px",
+                }}
+              >
+                Transparent, structured, accountable.
+              </p>
+            </R>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: mobile ? "1fr" : "repeat(4,1fr)",
+                gap: "1px",
+                background: C.border,
+                border: "1px solid " + C.border,
+              }}
+            >
+              {PROCESS.map((p) => (
+                <div
+                  key={p.n}
+                  className="card"
+                  style={{
+                    background: C.bg2,
+                    padding: "28px 22px",
+                    borderTop: "3px solid " + p.c,
+                    position: "relative",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontFamily: C.h,
+                      fontSize: "56px",
+                      color: p.c + "15",
+                      position: "absolute",
+                      top: "8px",
+                      right: "14px",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {p.n}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: C.b,
+                      fontSize: "10px",
+                      color: p.c,
+                      letterSpacing: "3px",
+                      marginBottom: "14px",
+                    }}
+                  >
+                    STEP {p.n}
+                  </div>
+                  <div
+                    className="gh"
+                    data-text={p.t}
+                    style={{
+                      fontFamily: C.h,
+                      fontSize: "28px",
+                      letterSpacing: "1px",
+                      color: C.white,
+                      marginBottom: "14px",
+                    }}
+                  >
+                    {p.t}
+                  </div>
+                  <p
+                    style={{
+                      fontFamily: C.b,
+                      fontSize: "12px",
+                      color: C.grey,
+                      lineHeight: 1.8,
+                    }}
+                  >
+                    {p.d}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div style={{ textAlign: "center", marginTop: "32px" }}>
+              <a
+                href="https://wa.me/918279988591?text=Hi+Ishan!+Discovery+call."
+                target="_blank"
+                rel="noreferrer"
+                className="bt"
+                style={{
+                  padding: "14px 36px",
+                  background: "#00ff88",
+                  color: C.bg,
+                  fontFamily: C.b,
+                  fontWeight: 700,
+                  fontSize: "13px",
+                  letterSpacing: "1.5px",
+                  textTransform: "uppercase",
+                  display: "inline-block",
+                  textDecoration: "none",
+                }}
+              >
+                BOOK DISCOVERY CALL
+              </a>
+            </div>
+          </section>
+
+          {/* SKILLS */}
+          <section
+            id="skills"
+            style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
+          >
+            <R style={{ marginBottom: "56px" }}>
+              <SLabel color="#00aaff">CAPABILITIES</SLabel>
+              <BigH>
+                SKILL
+                <br />
+                <span style={{ color: "#00aaff" }}>SET</span>
+              </BigH>
+            </R>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: mobile ? "1fr" : "1fr 1fr 1fr",
+                gap: "24px",
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    fontFamily: C.b,
+                    fontSize: "9px",
+                    color: C.red,
+                    letterSpacing: "3px",
+                    textTransform: "uppercase",
+                    marginBottom: "16px",
+                  }}
+                >
+                  — TECHNICAL
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                  }}
+                >
+                  {SKILLS_T.map((s) => (
+                    <div
+                      key={s.n}
+                      className="card"
+                      style={{ padding: "12px 14px" }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginBottom: "7px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontFamily: C.b,
+                            fontSize: "12px",
+                            color: C.white,
+                          }}
+                        >
+                          {s.n}
+                        </span>
+                        <span
+                          style={{
+                            fontFamily: C.b,
+                            fontSize: "10px",
+                            color: C.grey,
+                          }}
+                        >
+                          {s.p}%
+                        </span>
+                      </div>
+                      <div style={{ height: "2px", background: C.border }}>
+                        <div
+                          style={{
+                            height: "100%",
+                            width: s.p + "%",
+                            background: s.c,
+                            boxShadow: "0 0 6px " + s.c,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontFamily: C.b,
+                    fontSize: "9px",
+                    color: "#ff8800",
+                    letterSpacing: "3px",
+                    textTransform: "uppercase",
+                    marginBottom: "16px",
+                  }}
+                >
+                  — BUSINESS
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "6px",
+                  }}
+                >
+                  {SKILLS_B.map((s) => (
+                    <div
+                      key={s}
+                      className="card"
+                      style={{
+                        padding: "10px 14px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                      }}
+                    >
+                      <span style={{ color: "#ff8800", fontSize: "8px" }}>
+                        &#9654;
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: C.b,
+                          fontSize: "12px",
+                          color: C.grey,
+                        }}
+                      >
+                        {s}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontFamily: C.b,
+                    fontSize: "9px",
+                    color: "#00ff88",
+                    letterSpacing: "3px",
+                    textTransform: "uppercase",
+                    marginBottom: "16px",
+                  }}
+                >
+                  — SOFT SKILLS
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "6px",
+                    marginBottom: "24px",
+                  }}
+                >
+                  {SKILLS_S.map((s) => (
+                    <span
+                      key={s}
+                      style={{
+                        fontFamily: C.b,
+                        fontSize: "11px",
+                        color: C.grey,
+                        border: "1px solid " + C.border,
+                        padding: "4px 10px",
+                      }}
+                    >
+                      {s}
+                    </span>
+                  ))}
+                </div>
+                <div
+                  style={{
+                    fontFamily: C.b,
+                    fontSize: "9px",
+                    color: "#00aaff",
+                    letterSpacing: "3px",
+                    textTransform: "uppercase",
+                    marginBottom: "14px",
+                  }}
+                >
+                  — LANGUAGES
+                </div>
+                <div
+                  style={{ display: "flex", gap: "8px", marginBottom: "20px" }}
+                >
+                  {[
+                    ["ENGLISH", "Fluent"],
+                    ["HINDI", "Native"],
+                  ].map(([l, lv]) => (
+                    <div
+                      key={l}
+                      className="card"
+                      style={{
+                        padding: "12px 16px",
+                        flex: 1,
+                        textAlign: "center",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontFamily: C.h,
+                          fontSize: "18px",
+                          color: C.white,
+                        }}
+                      >
+                        {l}
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: C.b,
+                          fontSize: "10px",
+                          color: C.grey,
+                          marginTop: "3px",
+                        }}
+                      >
+                        {lv}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div
+                  style={{
+                    fontFamily: C.b,
+                    fontSize: "9px",
+                    color: C.dim,
+                    letterSpacing: "3px",
+                    textTransform: "uppercase",
+                    marginBottom: "14px",
+                  }}
+                >
+                  — TOOLS
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+                  {[
+                    "Figma",
+                    "Canva",
+                    "Notion",
+                    "WhatsApp Biz",
+                    "Meta Suite",
+                    "Google Workspace",
+                    "VS Code",
+                    "GitHub",
+                  ].map((t) => (
+                    <span
+                      key={t}
+                      style={{
+                        fontFamily: C.b,
+                        fontSize: "10px",
+                        color: C.dim,
+                        border: "1px solid " + C.border,
+                        padding: "3px 8px",
+                      }}
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* SERVICES */}
+          <section
+            id="services"
+            style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
+          >
+            <R style={{ marginBottom: "56px" }}>
+              <SLabel color={C.red}>SERVICES</SLabel>
+              <BigH>
+                WHAT I<br />
+                <span style={{ color: C.red }}>OFFER</span>
+              </BigH>
+            </R>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: mobile ? "1fr" : "1.5fr 1fr",
+                gap: "1px",
+                background: C.border,
+                border: "1px solid " + C.border,
+              }}
+            >
+              <div
+                className="card"
+                style={{
+                  background: C.bg2,
+                  borderTop: "3px solid " + C.red,
+                  padding: "36px",
+                  gridRow: mobile ? "auto" : "span 2",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "20px",
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      fontFamily: C.b,
+                      fontSize: "9px",
+                      color: C.red,
+                      letterSpacing: "3px",
+                      textTransform: "uppercase",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    01 — FLAGSHIP
+                  </div>
+                  <h3
+                    style={{
+                      fontFamily: C.h,
+                      fontSize: mobile ? "30px" : "40px",
+                      color: C.white,
+                      lineHeight: 1,
+                      marginBottom: "4px",
+                    }}
+                  >
+                    PREMIUM WEB
+                  </h3>
+                  <h3
+                    style={{
+                      fontFamily: C.h,
+                      fontSize: mobile ? "30px" : "40px",
+                      color: C.red,
+                      lineHeight: 1,
+                      marginBottom: "20px",
+                    }}
+                  >
+                    DESIGN & DEV
+                  </h3>
+                  <p
+                    style={{
+                      fontFamily: C.b,
+                      fontSize: "13px",
+                      color: C.grey,
+                      lineHeight: 1.85,
+                      marginBottom: "20px",
+                    }}
+                  >
+                    From Figma to deployed. Performance-first websites built to
+                    convert. I bring a BD lens to every project — I care about
+                    your conversion rate, not just your colour palette.
+                  </p>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "6px",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    {[
+                      "Next.js",
+                      "React",
+                      "Three.js",
+                      "Figma",
+                      "Tailwind",
+                      "Framer Motion",
+                      "SEO",
+                      "Mobile-First",
+                    ].map((t) => (
+                      <Tag key={t}>{t}</Tag>
+                    ))}
+                  </div>
+                  <ul
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "8px",
+                      listStyle: "none",
+                      marginBottom: "28px",
+                    }}
+                  >
+                    {[
+                      "Custom design — no templates",
+                      "Full mobile responsiveness",
+                      "Core Web Vitals optimised",
+                      "AI chatbot integration available",
+                      "Delivered in 1–3 weeks",
+                    ].map((pt) => (
+                      <li
+                        key={pt}
+                        style={{
+                          display: "flex",
+                          gap: "10px",
+                          alignItems: "center",
+                          fontFamily: C.b,
+                          fontSize: "12px",
+                          color: C.grey,
+                        }}
+                      >
+                        <span style={{ color: "#00ff88" }}>✓</span>
+                        {pt}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <a
+                  href="https://wa.me/918279988591?text=Hi+Ishan!+Web+design+enquiry."
+                  target="_blank"
+                  rel="noreferrer"
+                  className="bt"
+                  style={{
+                    display: "block",
+                    padding: "14px 24px",
+                    textAlign: "center",
+                    background: C.red,
+                    color: C.bg,
+                    fontFamily: C.b,
+                    fontWeight: 700,
+                    fontSize: "13px",
+                    textDecoration: "none",
+                    letterSpacing: "1.5px",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  START A PROJECT
+                </a>
+              </div>
+              {[
+                {
+                  n: "02",
+                  t: "BD & SALES CONSULTING",
+                  c: "#ff8800",
+                  d: "Go-to-market, key account frameworks, conversion funnel optimisation. Backed by real EdTech experience driving ~70% of company revenue.",
+                },
+                {
+                  n: "03",
+                  t: "SOCIAL MEDIA + AI WORKFLOWS",
+                  c: "#00aaff",
+                  d: "Campaigns that drive engagement. Prompt engineering and workflow automation — practical AI, not theory.",
+                },
+              ].map((sv) => (
+                <div
+                  key={sv.n}
+                  className="card"
+                  style={{
+                    background: C.bg2,
+                    padding: "28px",
+                    borderTop: "3px solid " + sv.c,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontFamily: C.b,
+                      fontSize: "9px",
+                      color: sv.c,
+                      letterSpacing: "3px",
+                      marginBottom: "12px",
+                    }}
+                  >
+                    {sv.n}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: C.h,
+                      fontSize: "22px",
+                      color: C.white,
+                      marginBottom: "12px",
+                      lineHeight: 1.1,
+                    }}
+                  >
+                    {sv.t}
+                  </div>
+                  <p
+                    style={{
+                      fontFamily: C.b,
+                      fontSize: "12px",
+                      color: C.grey,
+                      lineHeight: 1.8,
+                      marginBottom: "16px",
+                    }}
+                  >
+                    {sv.d}
+                  </p>
+                  <a
+                    href="https://wa.me/918279988591"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="bt"
+                    style={{
+                      display: "inline-block",
+                      padding: "8px 18px",
+                      border: "1px solid " + sv.c + "44",
+                      color: sv.c,
+                      fontFamily: C.b,
+                      fontSize: "11px",
+                      textDecoration: "none",
+                      letterSpacing: "1px",
+                      textTransform: "uppercase",
+                      background: "transparent",
+                    }}
+                  >
+                    ENQUIRE
+                  </a>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* GITHUB */}
+          <section
+            id="github"
+            style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
+            ref={ghRef}
+          >
+            <R style={{ marginBottom: "48px" }}>
+              <SLabel color={C.grey}>OPEN SOURCE</SLabel>
+              <BigH>
+                GITHUB
+                <br />
+                <span style={{ color: C.red }}>ACTIVITY</span>
+              </BigH>
+            </R>
+
+            <div
+              className="card"
+              style={{
+                padding: "24px 28px",
+                marginBottom: "20px",
+                display: "flex",
+                alignItems: "center",
+                gap: "24px",
+                flexWrap: "wrap",
+                borderTop: "2px solid " + C.red,
+              }}
+            >
+              {ghProfile && ghProfile.avatar_url && (
+                <img
+                  src={ghProfile.avatar_url}
+                  alt="avatar"
+                  style={{
+                    width: "60px",
+                    height: "60px",
+                    borderRadius: "0",
+                    border: "2px solid " + C.red,
+                    flexShrink: 0,
+                  }}
+                />
+              )}
+              <div style={{ flex: 1, minWidth: "180px" }}>
+                <div
+                  style={{
+                    fontFamily: C.h,
+                    fontSize: "26px",
+                    letterSpacing: "2px",
+                    color: C.white,
+                    lineHeight: 1,
+                  }}
+                >
+                  {ghProfile ? ghProfile.login.toUpperCase() : "ISHAN1501"}
+                </div>
+                <div
+                  style={{
+                    fontFamily: C.b,
+                    fontSize: "11px",
+                    color: C.grey,
+                    marginTop: "5px",
+                  }}
+                >
+                  {ghProfile && ghProfile.bio
+                    ? ghProfile.bio
+                    : "React · Next.js · Three.js · Web Designer & BD Professional"}
+                </div>
+                {ghProfile && ghProfile.location && (
+                  <div
+                    style={{
+                      fontFamily: C.b,
+                      fontSize: "10px",
+                      color: C.dim,
+                      marginTop: "4px",
+                    }}
+                  >
+                    {ghProfile.location}
+                  </div>
+                )}
+              </div>
+              <a
+                href="https://github.com/ishan1501"
+                target="_blank"
+                rel="noreferrer"
+                className="bt"
+                style={{
+                  padding: "10px 22px",
+                  background: C.red,
+                  color: C.bg,
+                  fontFamily: C.b,
+                  fontWeight: 700,
+                  fontSize: "12px",
+                  textDecoration: "none",
+                  letterSpacing: "1px",
+                  textTransform: "uppercase",
+                }}
+              >
+                VIEW PROFILE
+              </a>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: mobile ? "1fr 1fr" : "repeat(4,1fr)",
+                gap: "1px",
+                background: C.border,
+                border: "1px solid " + C.border,
+                marginBottom: "20px",
+              }}
+            >
+              {[
+                {
+                  label: "PUBLIC REPOS",
+                  val: ghProfile ? ghProfile.public_repos : 0,
+                  color: C.red,
+                },
+                {
+                  label: "FOLLOWERS",
+                  val: ghProfile ? ghProfile.followers : 0,
+                  color: "#ff8800",
+                },
+                {
+                  label: "TOTAL STARS",
+                  val: repos.reduce(function (s, r) {
+                    return s + (r.stargazers_count || 0);
+                  }, 0),
+                  color: "#ffcc00",
+                },
+                {
+                  label: "TOTAL FORKS",
+                  val: repos.reduce(function (s, r) {
+                    return s + (r.forks_count || 0);
+                  }, 0),
+                  color: "#00ff88",
+                },
+              ].map(function (st, i) {
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      background: C.bg2,
+                      padding: "22px 20px",
+                      borderTop: "2px solid " + st.color,
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontFamily: C.h,
+                        fontSize: mobile ? "38px" : "48px",
+                        lineHeight: 1,
+                        color: st.color,
+                      }}
+                    >
+                      <Counter end={st.val} trigger={ghLive} />
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: C.b,
+                        fontSize: "9px",
+                        color: C.grey,
+                        letterSpacing: "2px",
+                        marginTop: "7px",
+                      }}
+                    >
+                      {st.label}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {repos.length > 0 &&
+              (function () {
+                const langMap = {};
+                repos.forEach(function (r) {
+                  if (r.language)
+                    langMap[r.language] = (langMap[r.language] || 0) + 1;
+                });
+                const langs = Object.entries(langMap)
+                  .sort(function (a, b) {
+                    return b[1] - a[1];
+                  })
+                  .slice(0, 6);
+                const total = langs.reduce(function (s, l) {
+                  return s + l[1];
+                }, 0);
+                const LCOLS = [
+                  C.red,
+                  "#ff8800",
+                  "#00ff88",
+                  "#00aaff",
+                  "#ff44aa",
+                  "#ffcc00",
+                ];
+                return (
+                  <div
+                    className="card"
+                    style={{ padding: "22px 24px", marginBottom: "20px" }}
+                  >
+                    <div
+                      style={{
+                        fontFamily: C.b,
+                        fontSize: "9px",
+                        color: C.dim,
+                        letterSpacing: "3px",
+                        textTransform: "uppercase",
+                        marginBottom: "16px",
+                      }}
+                    >
+                      LANGUAGE BREAKDOWN
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        height: "8px",
+                        gap: "2px",
+                        marginBottom: "16px",
+                      }}
+                    >
+                      {langs.map(function (l, i) {
+                        return (
+                          <div
+                            key={l[0]}
+                            style={{
+                              flex: l[1] / total,
+                              background: LCOLS[i],
+                              height: "100%",
+                              boxShadow: "0 0 6px " + LCOLS[i] + "66",
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "12px 24px",
+                      }}
+                    >
+                      {langs.map(function (l, i) {
+                        const pct = Math.round((l[1] / total) * 100);
+                        return (
+                          <div
+                            key={l[0]}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "7px",
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: "10px",
+                                height: "10px",
+                                background: LCOLS[i],
+                                flexShrink: 0,
+                              }}
+                            />
+                            <span
+                              style={{
+                                fontFamily: C.b,
+                                fontSize: "11px",
+                                color: C.white,
+                              }}
+                            >
+                              {l[0]}
+                            </span>
                             <span
                               style={{
                                 fontFamily: C.b,
                                 fontSize: "10px",
                                 color: C.dim,
-                                marginLeft: "auto",
                               }}
                             >
-                              {new Date(repo.updated_at)
-                                .toLocaleDateString("en-GB", {
-                                  month: "short",
-                                  year: "numeric",
-                                })
-                                .toUpperCase()}
+                              {pct}%
                             </span>
                           </div>
-                        </div>
-                      </a>
-                    );
-                  })}
-              </div>
-            </div>
-          )}
-        </section>
-
-        {/* MUSIC */}
-        <section
-          id="music"
-          style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
-        >
-          <R>
-            <SLabel color="#ff8800">VIBE CHECK</SLabel>
-          </R>
-          <R delay=".05s">
-            <BigH>
-              THE
-              <br />
-              <span style={{ color: "#ff8800" }}>JUKEBOX</span>
-            </BigH>
-          </R>
-          <R delay=".1s">
-            <p
-              style={{
-                fontFamily: C.b,
-                fontSize: "13px",
-                color: C.grey,
-                lineHeight: 1.75,
-                marginTop: "14px",
-                marginBottom: "32px",
-              }}
-            >
-              Music I work to. Deep focus, lo-fi, and everything in between.
-            </p>
-          </R>
-          <R delay=".15s">
-            <a
-              href="https://www.youtube.com/playlist?list=PLyLXPcBWCFhkQxop7fEudlEE7TeOp1nUb"
-              target="_blank"
-              rel="noreferrer"
-              className="bt card"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "24px 28px",
-                textDecoration: "none",
-                background: C.bg2,
-                borderTop: "3px solid #ff8800",
-                borderLeft: "none",
-              }}
-            >
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "18px" }}
-              >
-                <div
-                  style={{
-                    width: "44px",
-                    height: "44px",
-                    background: "#ff8800",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  <span style={{ fontSize: "20px" }}>&#9654;</span>
-                </div>
-                <div>
-                  <div
-                    style={{
-                      fontFamily: C.h,
-                      fontSize: "22px",
-                      letterSpacing: "1px",
-                      color: C.white,
-                      lineHeight: 1,
-                    }}
-                  >
-                    ISHAN'S PLAYLIST
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      fontFamily: C.b,
-                      fontSize: "11px",
-                      color: C.grey,
-                      marginTop: "5px",
-                    }}
-                  >
-                    youtube.com · Open in YouTube
-                  </div>
-                </div>
-              </div>
-              <div
-                style={{
-                  fontFamily: C.h,
-                  fontSize: "32px",
-                  color: "#ff8800",
-                  letterSpacing: "1px",
-                }}
-              >
-                &#8594;
-              </div>
-            </a>
-          </R>
-        </section>
+                );
+              })()}
 
-        {/* CONTACT */}
-        <section id="contact" style={{ ...W, ...P }}>
-          <R style={{ marginBottom: "56px" }}>
-            <SLabel color={C.red}>CONTACT</SLabel>
-            <h2
-              className="gh"
-              data-text="LET'S CLOSE A DEAL."
-              style={{
-                fontFamily: C.h,
-                fontWeight: 400,
-                fontSize: "clamp(42px,8vw,100px)",
-                lineHeight: 0.88,
-                color: C.white,
-              }}
-            >
-              LET'S CLOSE
-              <br />
-              <span style={{ color: C.red }}>A DEAL.</span>
-            </h2>
-            <p
-              style={{
-                fontFamily: C.b,
-                fontSize: "13px",
-                color: C.grey,
-                lineHeight: 1.75,
-                marginTop: "20px",
-                maxWidth: "500px",
-              }}
-            >
-              Whether you need a website that converts, a BD strategy that
-              drives revenue, or both — let's talk. I respond within 24 hours.
-            </p>
-          </R>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: mobile ? "1fr" : "1fr 1fr",
-              gap: "24px",
-            }}
-          >
             <div
               className="card"
-              style={{ padding: "32px", borderTop: "3px solid " + C.red }}
+              style={{
+                padding: "22px 24px",
+                marginBottom: "20px",
+                overflowX: "auto",
+              }}
             >
               <div
                 style={{
                   fontFamily: C.b,
                   fontSize: "9px",
-                  color: C.red,
+                  color: C.dim,
                   letterSpacing: "3px",
                   textTransform: "uppercase",
-                  marginBottom: "24px",
+                  marginBottom: "16px",
                 }}
               >
-                SEND A MESSAGE
+                CONTRIBUTION HEATMAP — LAST 365 DAYS
+                {ghContribs.length > 0 && (
+                  <span style={{ color: C.red, marginLeft: "12px" }}>
+                    {ghContribs.reduce(function (s, d) {
+                      return s + d.count;
+                    }, 0)}{" "}
+                    TOTAL
+                  </span>
+                )}
               </div>
-              {sent ? (
+              <GHHeatmap contributions={ghContribs} mobile={mobile} />
+            </div>
+
+            {repos.length > 0 && (
+              <div>
                 <div
                   style={{
-                    textAlign: "center",
-                    padding: "40px 0",
-                    fontFamily: C.h,
-                    fontSize: "28px",
-                    color: "#00ff88",
+                    fontFamily: C.b,
+                    fontSize: "9px",
+                    color: C.dim,
+                    letterSpacing: "3px",
+                    textTransform: "uppercase",
+                    marginBottom: "12px",
                   }}
                 >
-                  MESSAGE SENT
-                  <br />
-                  <span
-                    style={{ fontSize: "16px", color: C.grey, fontFamily: C.b }}
-                  >
-                    I'll reply within 24 hours.
-                  </span>
+                  TOP REPOS BY STARS
                 </div>
-              ) : (
                 <div
                   style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "12px",
+                    display: "grid",
+                    gridTemplateColumns: mobile ? "1fr" : "1fr 1fr 1fr",
+                    gap: "1px",
+                    background: C.border,
+                    border: "1px solid " + C.border,
                   }}
+                >
+                  {repos
+                    .slice()
+                    .sort(function (a, b) {
+                      return b.stargazers_count - a.stargazers_count;
+                    })
+                    .slice(0, 6)
+                    .map(function (repo, pi) {
+                      const col = RCOLS[pi % RCOLS.length];
+                      return (
+                        <a
+                          key={repo.id}
+                          href={repo.html_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="card"
+                          style={{
+                            background: C.bg2,
+                            display: "flex",
+                            flexDirection: "column",
+                            textDecoration: "none",
+                            borderTop: "2px solid " + col,
+                          }}
+                        >
+                          <div
+                            style={{
+                              padding: "14px 16px 10px",
+                              borderBottom: "1px solid " + C.border,
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: "7px",
+                                height: "7px",
+                                background: col,
+                                flexShrink: 0,
+                              }}
+                            />
+                            <div
+                              style={{
+                                fontFamily: C.h,
+                                fontSize: "16px",
+                                letterSpacing: "1px",
+                                color: C.white,
+                                lineHeight: 1,
+                                flex: 1,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {repo.name.toUpperCase().replace(/-/g, " ")}
+                            </div>
+                          </div>
+                          <div
+                            style={{
+                              padding: "12px 16px",
+                              flex: 1,
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: "8px",
+                            }}
+                          >
+                            <p
+                              style={{
+                                fontFamily: C.b,
+                                fontSize: "11px",
+                                color: C.grey,
+                                lineHeight: 1.7,
+                                flex: 1,
+                              }}
+                            >
+                              {repo.description || "No description."}
+                            </p>
+                            <div
+                              style={{
+                                display: "flex",
+                                gap: "12px",
+                                alignItems: "center",
+                                flexWrap: "wrap",
+                              }}
+                            >
+                              {repo.language && (
+                                <span
+                                  style={{
+                                    fontFamily: C.b,
+                                    fontSize: "10px",
+                                    color: col,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "4px",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      width: "6px",
+                                      height: "6px",
+                                      borderRadius: "50%",
+                                      background: col,
+                                      display: "inline-block",
+                                    }}
+                                  />
+                                  {repo.language}
+                                </span>
+                              )}
+                              <span
+                                style={{
+                                  fontFamily: C.b,
+                                  fontSize: "10px",
+                                  color: C.grey,
+                                }}
+                              >
+                                &#9733; {repo.stargazers_count}
+                              </span>
+                              <span
+                                style={{
+                                  fontFamily: C.b,
+                                  fontSize: "10px",
+                                  color: C.dim,
+                                  marginLeft: "auto",
+                                }}
+                              >
+                                {new Date(repo.updated_at)
+                                  .toLocaleDateString("en-GB", {
+                                    month: "short",
+                                    year: "numeric",
+                                  })
+                                  .toUpperCase()}
+                              </span>
+                            </div>
+                          </div>
+                        </a>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* MUSIC */}
+          <section
+            id="music"
+            style={{ ...W, ...P, borderBottom: "1px solid " + C.border }}
+          >
+            <R>
+              <SLabel color="#ff8800">VIBE CHECK</SLabel>
+            </R>
+            <R delay=".05s">
+              <BigH>
+                THE
+                <br />
+                <span style={{ color: "#ff8800" }}>JUKEBOX</span>
+              </BigH>
+            </R>
+            <R delay=".1s">
+              <p
+                style={{
+                  fontFamily: C.b,
+                  fontSize: "13px",
+                  color: C.grey,
+                  lineHeight: 1.75,
+                  marginTop: "14px",
+                  marginBottom: "32px",
+                }}
+              >
+                Music I work to. Deep focus, lo-fi, and everything in between.
+              </p>
+            </R>
+            <R delay=".15s">
+              <a
+                href="https://www.youtube.com/playlist?list=PLyLXPcBWCFhkQxop7fEudlEE7TeOp1nUb"
+                target="_blank"
+                rel="noreferrer"
+                className="bt card"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "24px 28px",
+                  textDecoration: "none",
+                  background: C.bg2,
+                  borderTop: "3px solid #ff8800",
+                  borderLeft: "none",
+                }}
+              >
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "18px" }}
                 >
                   <div
                     style={{
-                      display: "grid",
-                      gridTemplateColumns: mobile ? "1fr" : "1fr 1fr",
-                      gap: "12px",
+                      width: "44px",
+                      height: "44px",
+                      background: "#ff8800",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
                     }}
                   >
-                    <input
-                      placeholder="NAME *"
-                      value={form.name}
-                      onChange={(e) =>
-                        setForm((p) => ({ ...p, name: e.target.value }))
-                      }
-                      style={iSty}
-                      onFocus={onFocus}
-                      onBlur={onBlur}
-                    />
-                    <input
-                      placeholder="EMAIL"
-                      value={form.email}
-                      onChange={(e) =>
-                        setForm((p) => ({ ...p, email: e.target.value }))
-                      }
-                      style={iSty}
-                      onFocus={onFocus}
-                      onBlur={onBlur}
-                    />
+                    <span style={{ fontSize: "20px" }}>&#9654;</span>
                   </div>
-                  <select
-                    value={form.budget}
-                    onChange={(e) =>
-                      setForm((p) => ({ ...p, budget: e.target.value }))
-                    }
-                    style={{ ...iSty, WebkitAppearance: "none" }}
-                  >
-                    <option value="">BUDGET (OPTIONAL)</option>
-                    {[
-                      "Under Rs 15,000",
-                      "Rs 15,000-50,000",
-                      "Rs 50,000-1,00,000",
-                      "Rs 1,00,000+",
-                      "LET'S DISCUSS",
-                    ].map((o) => (
-                      <option key={o}>{o}</option>
-                    ))}
-                  </select>
-                  <textarea
-                    placeholder="WHAT ARE YOU BUILDING? *"
-                    rows={4}
-                    value={form.message}
-                    onChange={(e) =>
-                      setForm((p) => ({ ...p, message: e.target.value }))
-                    }
-                    style={{ ...iSty, resize: "vertical" }}
-                    onFocus={onFocus}
-                    onBlur={onBlur}
-                  />
-                  <button
-                    className="bt"
-                    onClick={submitForm}
-                    style={{
-                      padding: "13px 28px",
-                      background: C.red,
-                      color: C.bg,
-                      fontFamily: C.b,
-                      fontWeight: 700,
-                      fontSize: "13px",
-                      letterSpacing: "1.5px",
-                      textTransform: "uppercase",
-                      alignSelf: "flex-start",
-                    }}
-                  >
-                    SEND VIA WHATSAPP
-                  </button>
-                </div>
-              )}
-            </div>
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
-            >
-              {[
-                {
-                  l: "WHATSAPP",
-                  h: "https://wa.me/918279988591",
-                  c: "#00c853",
-                  desc: "+91 82799 88591",
-                },
-                {
-                  l: "LINKEDIN",
-                  h: "https://linkedin.com/in/ishan1501/",
-                  c: "#0077b5",
-                  desc: "linkedin.com/in/ishan1501",
-                },
-                {
-                  l: "GITHUB",
-                  h: "https://github.com/ishan1501",
-                  c: C.white,
-                  desc: "github.com/ishan1501",
-                },
-                {
-                  l: "EMAIL",
-                  h: "mailto:jainishan18@gmail.com",
-                  c: C.red,
-                  desc: "jainishan18@gmail.com",
-                },
-              ].map((b) => (
-                <a
-                  key={b.l}
-                  href={b.h}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="bt card"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "18px 20px",
-                    textDecoration: "none",
-                    background: C.bg2,
-                    borderLeft: "3px solid " + b.c,
-                  }}
-                >
                   <div>
                     <div
-                      style={{ fontFamily: C.h, fontSize: "20px", color: b.c }}
+                      style={{
+                        fontFamily: C.h,
+                        fontSize: "22px",
+                        letterSpacing: "1px",
+                        color: C.white,
+                        lineHeight: 1,
+                      }}
                     >
-                      {b.l}
+                      ISHAN'S PLAYLIST
                     </div>
                     <div
                       style={{
                         fontFamily: C.b,
                         fontSize: "11px",
                         color: C.grey,
-                        marginTop: "3px",
+                        marginTop: "5px",
                       }}
                     >
-                      {b.desc}
+                      youtube.com · Open in YouTube
                     </div>
                   </div>
-                  <span
-                    style={{ fontFamily: C.b, fontSize: "18px", color: C.dim }}
-                  >
-                    &#8594;
-                  </span>
-                </a>
-              ))}
+                </div>
+                <div
+                  style={{
+                    fontFamily: C.h,
+                    fontSize: "32px",
+                    color: "#ff8800",
+                    letterSpacing: "1px",
+                  }}
+                >
+                  &#8594;
+                </div>
+              </a>
+            </R>
+          </section>
+
+          {/* CONTACT */}
+          <section id="contact" style={{ ...W, ...P }}>
+            <R style={{ marginBottom: "56px" }}>
+              <SLabel color={C.red}>CONTACT</SLabel>
+              <h2
+                className="gh"
+                data-text="LET'S CLOSE A DEAL."
+                style={{
+                  fontFamily: C.h,
+                  fontWeight: 400,
+                  fontSize: "clamp(42px,8vw,100px)",
+                  lineHeight: 0.88,
+                  color: C.white,
+                }}
+              >
+                LET'S CLOSE
+                <br />
+                <span style={{ color: C.red }}>A DEAL.</span>
+              </h2>
+              <p
+                style={{
+                  fontFamily: C.b,
+                  fontSize: "13px",
+                  color: C.grey,
+                  lineHeight: 1.75,
+                  marginTop: "20px",
+                  maxWidth: "500px",
+                }}
+              >
+                Whether you need a website that converts, a BD strategy that
+                drives revenue, or both — let's talk. I respond within 24 hours.
+              </p>
+            </R>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: mobile ? "1fr" : "1fr 1fr",
+                gap: "24px",
+              }}
+            >
               <div
                 className="card"
-                style={{ padding: "18px 20px", background: C.bg3 }}
+                style={{ padding: "32px", borderTop: "3px solid " + C.red }}
               >
                 <div
                   style={{
                     fontFamily: C.b,
                     fontSize: "9px",
-                    color: C.dim,
-                    letterSpacing: "2px",
+                    color: C.red,
+                    letterSpacing: "3px",
                     textTransform: "uppercase",
-                    marginBottom: "10px",
+                    marginBottom: "24px",
                   }}
                 >
-                  LOCATION
+                  SEND A MESSAGE
                 </div>
+                {sent ? (
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "40px 0",
+                      fontFamily: C.h,
+                      fontSize: "28px",
+                      color: "#00ff88",
+                    }}
+                  >
+                    MESSAGE SENT
+                    <br />
+                    <span
+                      style={{
+                        fontSize: "16px",
+                        color: C.grey,
+                        fontFamily: C.b,
+                      }}
+                    >
+                      I'll reply within 24 hours.
+                    </span>
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "12px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: mobile ? "1fr" : "1fr 1fr",
+                        gap: "12px",
+                      }}
+                    >
+                      <input
+                        placeholder="NAME *"
+                        value={form.name}
+                        onChange={(e) =>
+                          setForm((p) => ({ ...p, name: e.target.value }))
+                        }
+                        style={iSty}
+                        onFocus={onFocus}
+                        onBlur={onBlur}
+                      />
+                      <input
+                        placeholder="EMAIL"
+                        value={form.email}
+                        onChange={(e) =>
+                          setForm((p) => ({ ...p, email: e.target.value }))
+                        }
+                        style={iSty}
+                        onFocus={onFocus}
+                        onBlur={onBlur}
+                      />
+                    </div>
+                    <select
+                      value={form.budget}
+                      onChange={(e) =>
+                        setForm((p) => ({ ...p, budget: e.target.value }))
+                      }
+                      style={{ ...iSty, WebkitAppearance: "none" }}
+                    >
+                      <option value="">BUDGET (OPTIONAL)</option>
+                      {[
+                        "Under Rs 15,000",
+                        "Rs 15,000-50,000",
+                        "Rs 50,000-1,00,000",
+                        "Rs 1,00,000+",
+                        "LET'S DISCUSS",
+                      ].map((o) => (
+                        <option key={o}>{o}</option>
+                      ))}
+                    </select>
+                    <textarea
+                      placeholder="WHAT ARE YOU BUILDING? *"
+                      rows={4}
+                      value={form.message}
+                      onChange={(e) =>
+                        setForm((p) => ({ ...p, message: e.target.value }))
+                      }
+                      style={{ ...iSty, resize: "vertical" }}
+                      onFocus={onFocus}
+                      onBlur={onBlur}
+                    />
+                    <button
+                      className="bt"
+                      onClick={submitForm}
+                      style={{
+                        padding: "13px 28px",
+                        background: C.red,
+                        color: C.bg,
+                        fontFamily: C.b,
+                        fontWeight: 700,
+                        fontSize: "13px",
+                        letterSpacing: "1.5px",
+                        textTransform: "uppercase",
+                        alignSelf: "flex-start",
+                      }}
+                    >
+                      SEND VIA WHATSAPP
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "12px",
+                }}
+              >
+                {[
+                  {
+                    l: "WHATSAPP",
+                    h: "https://wa.me/918279988591",
+                    c: "#00c853",
+                    desc: "+91 82799 88591",
+                  },
+                  {
+                    l: "LINKEDIN",
+                    h: "https://linkedin.com/in/ishan1501/",
+                    c: "#0077b5",
+                    desc: "linkedin.com/in/ishan1501",
+                  },
+                  {
+                    l: "GITHUB",
+                    h: "https://github.com/ishan1501",
+                    c: C.white,
+                    desc: "github.com/ishan1501",
+                  },
+                  {
+                    l: "EMAIL",
+                    h: "mailto:jainishan18@gmail.com",
+                    c: C.red,
+                    desc: "jainishan18@gmail.com",
+                  },
+                ].map((b) => (
+                  <a
+                    key={b.l}
+                    href={b.h}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="bt card"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "18px 20px",
+                      textDecoration: "none",
+                      background: C.bg2,
+                      borderLeft: "3px solid " + b.c,
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          fontFamily: C.h,
+                          fontSize: "20px",
+                          color: b.c,
+                        }}
+                      >
+                        {b.l}
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: C.b,
+                          fontSize: "11px",
+                          color: C.grey,
+                          marginTop: "3px",
+                        }}
+                      >
+                        {b.desc}
+                      </div>
+                    </div>
+                    <span
+                      style={{
+                        fontFamily: C.b,
+                        fontSize: "18px",
+                        color: C.dim,
+                      }}
+                    >
+                      &#8594;
+                    </span>
+                  </a>
+                ))}
                 <div
-                  style={{ fontFamily: C.b, fontSize: "13px", color: C.grey }}
+                  className="card"
+                  style={{ padding: "18px 20px", background: C.bg3 }}
                 >
-                  Gurugram, Haryana, India
-                </div>
-                <div
-                  style={{
-                    fontFamily: C.b,
-                    fontSize: "11px",
-                    color: C.dim,
-                    marginTop: "4px",
-                  }}
-                >
-                  Open to remote and on-site
+                  <div
+                    style={{
+                      fontFamily: C.b,
+                      fontSize: "9px",
+                      color: C.dim,
+                      letterSpacing: "2px",
+                      textTransform: "uppercase",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    LOCATION
+                  </div>
+                  <div
+                    style={{ fontFamily: C.b, fontSize: "13px", color: C.grey }}
+                  >
+                    Gurugram, Haryana, India
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: C.b,
+                      fontSize: "11px",
+                      color: C.dim,
+                      marginTop: "4px",
+                    }}
+                  >
+                    Open to remote and on-site
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* FOOTER */}
-        <div
-          style={{
-            borderTop: "2px solid " + C.red,
-            padding: "16px 24px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "10px",
-          }}
-        >
+          {/* FOOTER */}
           <div
             style={{
-              fontFamily: C.h,
-              fontSize: "18px",
-              color: C.white,
-              letterSpacing: "2px",
+              borderTop: "2px solid " + C.red,
+              padding: "16px 24px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "10px",
             }}
           >
-            ISHAN JAIN<span style={{ color: C.red }}>.</span>
-          </div>
-          <div
-            style={{
-              fontFamily: C.b,
-              fontSize: "10px",
-              color: C.dim,
-              letterSpacing: "1px",
-            }}
-          >
-            2025 · WEB DESIGN x BUSINESS DEVELOPMENT · GURUGRAM
+            <div
+              style={{
+                fontFamily: C.h,
+                fontSize: "18px",
+                color: C.white,
+                letterSpacing: "2px",
+              }}
+            >
+              ISHAN JAIN<span style={{ color: C.red }}>.</span>
+            </div>
+            <div
+              style={{
+                fontFamily: C.b,
+                fontSize: "10px",
+                color: C.dim,
+                letterSpacing: "1px",
+              }}
+            >
+              2025 · WEB DESIGN x BUSINESS DEVELOPMENT · GURUGRAM
+            </div>
           </div>
         </div>
       </div>
